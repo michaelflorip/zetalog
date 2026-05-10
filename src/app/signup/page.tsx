@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+
+const LABEL =
+  "text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500";
+
+const UNDERLINE_INPUT =
+  "w-full border-b border-neutral-400 bg-transparent pb-2 text-sm text-black outline-none transition-colors duration-300 placeholder:text-neutral-400 focus:border-black dark:border-white/35 dark:text-white dark:placeholder:text-neutral-500 dark:focus:border-white";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -41,44 +47,43 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6">
+    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 transition-colors duration-300 dark:bg-black">
       <div className="w-full max-w-sm">
         <Link
           href="/"
-          className="mb-10 block text-sm font-semibold tracking-widest uppercase text-gray-950"
+          className="mb-10 block text-sm font-semibold tracking-widest uppercase text-black transition-colors duration-300 dark:text-white"
         >
           Zetalog
         </Link>
 
         {awaitingConfirmation ? (
           <div className="flex flex-col gap-6">
-            <h1 className="text-2xl font-semibold tracking-tight text-gray-950">
+            <h1 className="text-2xl font-semibold tracking-tight text-black transition-colors duration-300 dark:text-white">
               Check your email
             </h1>
-            <p className="text-sm leading-relaxed text-gray-500">
+            <p className="text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
               We sent a verification link to{" "}
-              <span className="font-mono text-gray-950">{email}</span>. Open it
-              to confirm your account, then sign in.
+              <span className="font-mono text-black dark:text-white">
+                {email}
+              </span>
+              . Open it to confirm your account, then sign in.
             </p>
             <Link
               href="/login"
-              className="text-sm font-medium text-gray-500 hover:text-gray-950 transition-colors"
+              className="text-sm font-medium text-neutral-500 transition-colors hover:text-black dark:text-neutral-400 dark:hover:text-white"
             >
               ← Back to sign in
             </Link>
           </div>
         ) : (
           <>
-            <h1 className="mb-8 text-2xl font-semibold tracking-tight text-gray-950">
+            <h1 className="mb-8 text-2xl font-semibold tracking-tight text-black transition-colors duration-300 dark:text-white">
               Create account
             </h1>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
               <div className="flex flex-col gap-1.5">
-                <label
-                  htmlFor="email"
-                  className="text-xs font-medium tracking-widest uppercase text-gray-400"
-                >
+                <label htmlFor="email" className={LABEL}>
                   Email
                 </label>
                 <input
@@ -88,16 +93,13 @@ export default function SignupPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border-b border-gray-300 bg-transparent pb-2 text-sm text-gray-950 outline-none placeholder:text-gray-300 focus:border-gray-950 transition-colors"
+                  className={UNDERLINE_INPUT}
                   placeholder="you@example.com"
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label
-                  htmlFor="password"
-                  className="text-xs font-medium tracking-widest uppercase text-gray-400"
-                >
+                <label htmlFor="password" className={LABEL}>
                   Password
                 </label>
                 <input
@@ -107,13 +109,13 @@ export default function SignupPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border-b border-gray-300 bg-transparent pb-2 text-sm text-gray-950 outline-none placeholder:text-gray-300 focus:border-gray-950 transition-colors"
+                  className={UNDERLINE_INPUT}
                   placeholder="••••••••"
                 />
               </div>
 
               {error && (
-                <p className="text-xs text-gray-950 border border-gray-200 px-3 py-2 rounded-sm bg-gray-50">
+                <p className="rounded-sm border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800 transition-colors duration-300 dark:border-red-900 dark:bg-red-950/35 dark:text-red-200">
                   {error}
                 </p>
               )}
@@ -121,17 +123,17 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-2 w-full bg-gray-950 py-3 text-sm font-medium tracking-widest uppercase text-white rounded-sm hover:bg-gray-800 disabled:opacity-40 transition-colors"
+                className="mt-2 w-full rounded-sm bg-black py-3 text-sm font-medium tracking-widest uppercase text-white transition-colors duration-300 hover:opacity-90 disabled:opacity-40 dark:bg-white dark:text-black"
               >
                 {loading ? "Creating account…" : "Create account"}
               </button>
             </form>
 
-            <p className="mt-12 text-center text-sm text-gray-500">
+            <p className="mt-12 text-center text-sm text-neutral-500 dark:text-neutral-400">
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="font-medium text-gray-950 hover:text-gray-600 transition-colors"
+                className="font-medium text-black transition-colors hover:opacity-80 dark:text-white"
               >
                 Sign in
               </Link>

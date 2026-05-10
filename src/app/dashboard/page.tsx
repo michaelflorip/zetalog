@@ -66,20 +66,20 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <div className="flex flex-1 flex-col bg-gray-50 font-sans pb-24">
+    <div className="flex flex-1 flex-col bg-white pb-24 font-sans transition-colors duration-300 dark:bg-black">
       <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-12 px-6 py-14">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
-            <p className="text-xs font-medium tracking-widest uppercase text-gray-400">
+            <p className="text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500">
               Analytics
             </p>
-            <h1 className="mt-3 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">
+            <h1 className="mt-3 text-2xl font-semibold tracking-tight text-black transition-colors duration-300 dark:text-white sm:text-3xl">
               Dashboard
             </h1>
           </div>
           <Link
             href="/play"
-            className="text-sm font-medium text-gray-500 hover:text-gray-950 transition-colors"
+            className="text-sm font-medium text-neutral-500 transition-colors hover:text-black dark:text-neutral-400 dark:hover:text-white"
           >
             → Play
           </Link>
@@ -127,11 +127,11 @@ export default async function DashboardPage() {
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border border-gray-200 bg-white px-6 py-6 rounded-sm">
-      <p className="text-xs font-medium tracking-widest uppercase text-gray-400">
+    <div className="rounded-sm border border-gray-200 bg-white px-6 py-6 transition-colors duration-300 dark:border-gray-800 dark:bg-black">
+      <p className="text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500">
         {label}
       </p>
-      <p className="mt-4 text-3xl font-semibold tabular-nums tracking-tight text-gray-950">
+      <p className="mt-4 text-3xl font-semibold tabular-nums tracking-tight text-black transition-colors duration-300 dark:text-white">
         {value}
       </p>
     </div>

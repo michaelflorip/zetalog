@@ -51,16 +51,15 @@ export default function DashboardCharts({
   }));
 
   const cardClass =
-    "border border-black/10 bg-background p-6 rounded-sm dark:border-white/15";
+    "border border-gray-200 bg-white p-6 rounded-sm dark:border-gray-800 dark:bg-black";
 
-  const mutedBody = "text-foreground/50";
+  const mutedBody = "text-neutral-500 dark:text-neutral-400";
+  const sectionLabel = "text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500";
 
   return (
     <div className="flex flex-col gap-6">
       <div className={cardClass}>
-        <h2 className="text-xs font-medium tracking-widest uppercase text-foreground/45">
-          Score trend
-        </h2>
+        <h2 className={sectionLabel}>Score trend</h2>
         {lineData.length === 0 ? (
           <p className={`mt-8 py-16 text-center text-sm ${mutedBody}`}>
             No sessions in this window yet.
@@ -105,9 +104,7 @@ export default function DashboardCharts({
       </div>
 
       <div className={cardClass}>
-        <h2 className="text-xs font-medium tracking-widest uppercase text-foreground/45">
-          Avg. time by operation
-        </h2>
+        <h2 className={sectionLabel}>Avg. time by operation</h2>
         {barPrepared.every((d) => d.avgMs === null) ? (
           <p className={`mt-8 py-16 text-center text-sm ${mutedBody}`}>
             No breakdown data yet. Sessions need recorded attempts in raw

@@ -19,10 +19,10 @@ interface LeaderRow {
 
 function tabButtonClass(active: boolean) {
   return [
-    "text-xs font-normal tracking-[0.22em] uppercase pb-3 border-b-2 transition-colors",
+    "pb-3 text-xs font-normal uppercase tracking-[0.22em] transition-colors duration-300",
     active
-      ? "border-gray-950 text-gray-950"
-      : "border-transparent text-gray-400 hover:text-gray-700",
+      ? "border-b-2 border-black font-medium text-black dark:border-white dark:text-white"
+      : "border-b-2 border-transparent text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300",
   ].join(" ");
 }
 
@@ -100,16 +100,16 @@ export default function LeaderboardClient() {
   }, [tab, fetchData]);
 
   return (
-    <div className="flex flex-1 flex-col bg-white font-sans">
+    <div className="flex flex-1 flex-col bg-white font-sans transition-colors duration-300 dark:bg-black">
       <div className="mx-auto w-full max-w-3xl px-8 py-20">
-        <h1 className="text-xl font-semibold tracking-tight text-gray-950">
+        <h1 className="text-xl font-semibold tracking-tight text-black transition-colors duration-300 dark:text-white">
           Leaderboard
         </h1>
-        <p className="mt-4 max-w-lg text-sm leading-relaxed text-gray-500">
+        <p className="mt-4 max-w-lg text-sm leading-relaxed text-neutral-500 transition-colors duration-300 dark:text-neutral-400">
           Highest scores among players who have made their profiles public.
         </p>
 
-        <div className="mt-16 flex flex-wrap gap-x-10 gap-y-2 border-b border-gray-100">
+        <div className="mt-16 flex flex-wrap gap-x-10 gap-y-2 border-b border-gray-200 pb-px transition-colors duration-300 dark:border-gray-800">
           <button
             type="button"
             className={tabButtonClass(tab === "all")}
@@ -135,22 +135,26 @@ export default function LeaderboardClient() {
 
         <div className="mt-12">
           {error && (
-            <p className="rounded-sm border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <p className="rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 transition-colors duration-300 dark:border-red-900 dark:bg-red-950/35 dark:text-red-200">
               {error}
             </p>
           )}
 
           {loading && (
-            <p className="text-sm text-gray-400">Loading…</p>
+            <p className="text-sm text-neutral-400 dark:text-neutral-500">
+              Loading…
+            </p>
           )}
 
           {!loading && !error && rows.length === 0 && (
-            <p className="text-sm text-gray-500">No qualifying scores yet.</p>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              No qualifying scores yet.
+            </p>
           )}
 
           {!loading && rows.length > 0 && (
-            <div className="border-t border-gray-200">
-              <header className="grid grid-cols-[52px_minmax(0,1fr)_48px_auto] items-baseline gap-x-8 gap-y-1 border-b border-gray-100 py-5 text-[10px] font-medium uppercase tracking-[0.2em] text-gray-400 sm:gap-x-14">
+            <div className="border-t border-gray-200 transition-colors duration-300 dark:border-gray-800">
+              <header className="grid grid-cols-[52px_minmax(0,1fr)_48px_auto] items-baseline gap-x-8 gap-y-1 border-b border-gray-200 py-5 text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400 transition-colors duration-300 dark:border-gray-800 dark:text-neutral-500 sm:gap-x-14">
                 <span>Rank</span>
                 <span>Username</span>
                 <span className="text-right">Score</span>
@@ -160,18 +164,18 @@ export default function LeaderboardClient() {
                 {rows.map((r, i) => (
                   <li
                     key={`${r.created_at}-${r.username}-${r.score}-${i}`}
-                    className="grid grid-cols-[52px_minmax(0,1fr)_48px_auto] items-baseline gap-x-8 gap-y-2 border-b border-gray-100 py-12 last:border-b-0 sm:gap-x-14"
+                    className="grid grid-cols-[52px_minmax(0,1fr)_48px_auto] items-baseline gap-x-8 gap-y-2 border-b border-gray-200 py-12 transition-colors duration-300 last:border-b-0 dark:border-gray-800 sm:gap-x-14"
                   >
-                    <span className="font-mono text-sm tabular-nums text-gray-500">
+                    <span className="font-mono text-sm tabular-nums text-neutral-500 dark:text-neutral-400">
                       #{r.rank}
                     </span>
-                    <span className="break-all font-mono text-sm text-gray-950">
+                    <span className="break-all font-mono text-sm text-black dark:text-white">
                       {r.username}
                     </span>
-                    <span className="text-right font-mono text-sm font-medium tabular-nums text-gray-950">
+                    <span className="text-right font-mono text-sm font-medium tabular-nums text-black dark:text-white">
                       {r.score}
                     </span>
-                    <span className="text-right font-mono text-xs tabular-nums text-gray-500">
+                    <span className="text-right font-mono text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
                       {formatSwissDate(r.created_at)}
                     </span>
                   </li>

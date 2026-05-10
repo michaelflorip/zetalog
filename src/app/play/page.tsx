@@ -2,13 +2,25 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useZetamacGame } from "@/hooks/use-zetamac-game";
-import { createClient } from "@/lib/supabase/client";
 import SessionTimeChart from "@/components/session-time-chart";
+import { useZetamacGame } from "@/hooks/use-zetamac-game";
 import { localCalendarDayUtcIsoRange } from "@/lib/datetime";
+import { createClient } from "@/lib/supabase/client";
 
 const GAME_DURATION_S = 120;
 const SESSION_SOURCE = "zetalog";
+
+const PRIMARY_BTN_PLAY =
+  "px-10 py-3 text-sm font-medium tracking-widest uppercase rounded-sm transition-colors duration-300 bg-black text-white hover:opacity-90 dark:bg-white dark:text-black";
+
+const OUTLINE_BTN_PLAY =
+  "inline-flex px-10 py-3 text-sm font-medium tracking-widest uppercase rounded-sm transition-colors duration-300 border border-black bg-white text-black hover:bg-neutral-50 dark:border-white dark:bg-black dark:text-white dark:hover:bg-white/10";
+
+const LABEL_MUTED =
+  "text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500";
+
+const INPUT_UNDERLINE_PLAY =
+  "w-full bg-transparent pb-2 text-center text-4xl font-semibold tracking-tight font-mono tabular-nums outline-none placeholder:text-neutral-400 dark:text-white dark:placeholder:text-neutral-500 transition-colors duration-300 border-b-2 border-neutral-400 focus:border-black dark:border-white/35 dark:focus:border-white text-black";
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -29,7 +41,6 @@ export default function PlayPage() {
     history,
     currentProblem,
     start,
-    reset,
     submitAnswer,
   } = useZetamacGame();
 
@@ -170,18 +181,15 @@ export default function PlayPage() {
 
   if (status === "idle") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-white font-sans">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-white font-sans transition-colors duration-300 dark:bg-black">
         <div className="flex flex-col items-center gap-8">
-          <h1 className="text-5xl font-semibold tracking-tight text-gray-950">
+          <h1 className="text-5xl font-semibold tracking-tight text-black transition-colors duration-300 dark:text-white">
             Zetalog
           </h1>
-          <p className="text-base text-gray-500 tracking-wide">
+          <p className="text-base tracking-wide text-neutral-500 dark:text-neutral-400">
             120 seconds. How fast can you go?
           </p>
-          <button
-            onClick={start}
-            className="mt-4 px-10 py-3 text-sm font-medium tracking-widest uppercase bg-gray-950 text-white rounded-sm hover:bg-gray-800 transition-colors"
-          >
+          <button onClick={start} type="button" className={`mt-4 ${PRIMARY_BTN_PLAY}`}>
             Start
           </button>
         </div>
@@ -196,29 +204,25 @@ export default function PlayPage() {
     }));
 
     return (
-      <div className="flex min-h-screen flex-col items-center bg-white px-6 py-12 font-sans">
+      <div className="flex min-h-screen flex-col items-center bg-white px-6 py-12 font-sans transition-colors duration-300 dark:bg-black">
         <div className="flex w-full max-w-2xl flex-col items-center gap-8">
           <div className="flex flex-col items-center gap-6">
-            <p className="text-xs font-medium tracking-widest uppercase text-gray-400">
-              Game Over
-            </p>
-            <p className="text-8xl font-semibold tracking-tight text-gray-950 tabular-nums">
+            <p className={LABEL_MUTED}>Game Over</p>
+            <p className="text-8xl font-semibold tracking-tight text-black tabular-nums transition-colors duration-300 dark:text-white">
               {score}
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
               problems solved in 2 minutes
             </p>
             {todayAttemptNumber != null && (
-              <p className="text-center text-sm font-medium tracking-tight text-gray-950">
+              <p className="text-center text-sm font-medium tracking-tight text-black transition-colors duration-300 dark:text-white">
                 Session Complete — Attempt #{todayAttemptNumber} today
               </p>
             )}
           </div>
 
-          <div className="w-full border border-gray-200 bg-white px-5 py-6 rounded-sm">
-            <p className="text-xs font-medium tracking-widest uppercase text-gray-400">
-              Time per question
-            </p>
+          <div className="w-full rounded-sm border border-gray-200 bg-white px-5 py-6 transition-colors duration-300 dark:border-gray-800 dark:bg-black">
+            <p className={LABEL_MUTED}>Time per question</p>
             <SessionTimeChart
               points={timingPoints}
               height={260}
@@ -227,17 +231,10 @@ export default function PlayPage() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/dashboard"
-              className="inline-flex px-10 py-3 text-sm font-medium tracking-widest uppercase border border-gray-950 bg-white text-gray-950 rounded-sm transition-colors hover:bg-gray-50"
-            >
+            <Link href="/dashboard" className={OUTLINE_BTN_PLAY}>
               View Dashboard
             </Link>
-            <button
-              onClick={start}
-              type="button"
-              className="px-10 py-3 text-sm font-medium tracking-widest uppercase bg-gray-950 text-white rounded-sm transition-colors hover:bg-gray-800"
-            >
+            <button onClick={start} type="button" className={PRIMARY_BTN_PLAY}>
               Restart
             </button>
           </div>
@@ -247,38 +244,31 @@ export default function PlayPage() {
   }
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-white font-sans select-none">
-      {/* Progress bar */}
-      <div className="fixed top-0 left-0 right-0 h-1 bg-gray-100">
+    <div className="relative flex min-h-screen flex-col bg-white font-sans select-none transition-colors duration-300 dark:bg-black">
+      <div className="fixed left-0 right-0 top-0 h-1 bg-neutral-200 transition-colors duration-300 dark:bg-neutral-800">
         <div
-          className="h-full bg-gray-950 transition-all duration-1000 ease-linear"
+          className="h-full bg-black transition-[width] duration-1000 ease-linear dark:bg-white"
           style={{ width: `${progress * 100}%` }}
         />
       </div>
 
-      {/* Header */}
-      <header className="flex items-center justify-between px-8 pt-8 pb-4">
+      <header className="flex items-center justify-between px-8 pb-4 pt-8">
         <div className="flex items-baseline gap-1.5">
-          <span className="text-xs font-medium tracking-widest uppercase text-gray-400">
-            Time
-          </span>
-          <span className="text-lg font-semibold tracking-tight text-gray-950 font-mono tabular-nums">
+          <span className={LABEL_MUTED}>Time</span>
+          <span className="font-mono text-lg font-semibold tabular-nums tracking-tight text-black transition-colors duration-300 dark:text-white">
             {formatTime(timeLeft)}
           </span>
         </div>
         <div className="flex items-baseline gap-1.5">
-          <span className="text-xs font-medium tracking-widest uppercase text-gray-400">
-            Score
-          </span>
-          <span className="text-lg font-semibold tracking-tight text-gray-950 font-mono tabular-nums">
+          <span className={LABEL_MUTED}>Score</span>
+          <span className="font-mono text-lg font-semibold tabular-nums tracking-tight text-black transition-colors duration-300 dark:text-white">
             {score}
           </span>
         </div>
       </header>
 
-      {/* Problem + Input */}
-      <main className="flex-1 flex flex-col items-center justify-center -mt-12">
-        <p className="text-6xl sm:text-7xl font-semibold tracking-tight text-gray-950">
+      <main className="-mt-12 flex flex-1 flex-col items-center justify-center">
+        <p className="text-6xl font-semibold tracking-tight text-black transition-colors duration-300 dark:text-white sm:text-7xl">
           {currentProblem.question}
         </p>
 
@@ -293,7 +283,7 @@ export default function PlayPage() {
               const v = e.target.value.replace(/[^0-9]/g, "");
               setInput(v);
             }}
-            className="w-full text-center text-4xl font-semibold tracking-tight text-gray-950 bg-transparent border-b-2 border-gray-300 focus:border-gray-950 outline-none pb-2 transition-colors font-mono tabular-nums placeholder:text-gray-300"
+            className={INPUT_UNDERLINE_PLAY}
             placeholder="?"
           />
         </div>

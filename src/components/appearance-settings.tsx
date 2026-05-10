@@ -20,8 +20,8 @@ export default function AppearanceSettings() {
   const active = theme ?? "system";
 
   return (
-    <div className="border border-black/10 px-5 py-6 rounded-sm dark:border-white/15">
-      <p className="text-xs font-medium tracking-widest uppercase text-foreground/50">
+    <div className="rounded-sm border border-gray-200 bg-white px-5 py-6 transition-colors duration-300 dark:border-gray-800 dark:bg-black">
+      <p className="text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500">
         Appearance
       </p>
       {!mounted ? (
@@ -36,9 +36,9 @@ export default function AppearanceSettings() {
                 type="button"
                 onClick={() => setTheme(value)}
                 className={[
-                  "text-xs tracking-[0.22em] uppercase transition-colors text-foreground/55 hover:text-foreground",
+                  "text-xs tracking-[0.22em] uppercase transition-colors text-neutral-500 hover:text-black dark:text-neutral-400 dark:hover:text-white",
                   isActive
-                    ? "font-semibold text-foreground underline decoration-foreground decoration-2 underline-offset-[6px]"
+                    ? "font-semibold text-black underline decoration-2 underline-offset-[6px] decoration-black dark:text-white dark:decoration-white"
                     : "font-normal",
                 ].join(" ")}
               >

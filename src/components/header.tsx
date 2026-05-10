@@ -1,15 +1,15 @@
 import Link from "next/link";
 
 const navClassName =
-  "text-sm font-normal tracking-[0.2em] uppercase text-foreground/85 hover:text-foreground transition-colors";
+  "text-sm font-normal tracking-[0.2em] uppercase text-black/85 transition-colors duration-300 hover:text-black dark:text-white/85 dark:hover:text-white";
 
 export default function Header() {
   return (
-    <header className="border-b border-black/10 bg-background dark:border-white/15">
+    <header className="border-b border-gray-200 bg-white transition-colors duration-300 dark:border-gray-800 dark:bg-black">
       <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-6">
         <Link
           href="/"
-          className="text-sm font-normal tracking-[0.2em] uppercase text-foreground"
+          className="text-sm font-normal tracking-[0.2em] uppercase text-black transition-colors duration-300 dark:text-white"
         >
           ZETALOG
         </Link>

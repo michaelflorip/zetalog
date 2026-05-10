@@ -4,6 +4,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+const LABEL =
+  "text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500";
+
+const UNDERLINE_INPUT =
+  "w-full border-b border-neutral-400 bg-transparent pb-2 text-sm text-black outline-none transition-colors duration-300 placeholder:text-neutral-400 focus:border-black dark:border-white/35 dark:text-white dark:placeholder:text-neutral-500 dark:focus:border-white";
+
+const OUTLINE_BTN =
+  "w-full rounded-sm border border-black bg-transparent px-8 py-3 text-sm font-medium tracking-widest uppercase text-black transition-colors duration-300 hover:bg-neutral-50 dark:border-white dark:text-white dark:hover:bg-white/10";
+
 export default function SettingsActions() {
   const router = useRouter();
   const [changeOpen, setChangeOpen] = useState(false);
@@ -84,16 +93,9 @@ export default function SettingsActions() {
     router.refresh();
   };
 
-  const inputClass =
-    "w-full border-b border-gray-300 bg-transparent pb-2 text-sm text-gray-950 outline-none placeholder:text-gray-300 focus:border-gray-950 transition-colors";
-
   return (
     <div className="mt-16 flex w-full max-w-xs flex-col items-center gap-5">
-      <button
-        type="button"
-        onClick={handleSignOut}
-        className="w-full border border-gray-950 bg-white px-8 py-3 text-sm font-medium tracking-widest uppercase text-gray-950 rounded-sm transition-colors hover:bg-gray-50"
-      >
+      <button type="button" onClick={handleSignOut} className={OUTLINE_BTN}>
         Sign Out
       </button>
 
@@ -112,7 +114,7 @@ export default function SettingsActions() {
               return !wasOpen;
             });
           }}
-          className="w-full border border-gray-200 bg-transparent px-8 py-3 text-sm font-medium tracking-widest uppercase text-gray-950 rounded-sm transition-colors hover:border-gray-400"
+          className={OUTLINE_BTN}
         >
           {changeOpen ? "Hide" : "Change password"}
         </button>
@@ -123,10 +125,7 @@ export default function SettingsActions() {
             className="mt-8 flex w-full flex-col gap-6"
           >
             <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="current-password"
-                className="text-xs font-medium tracking-widest uppercase text-gray-400"
-              >
+              <label htmlFor="current-password" className={LABEL}>
                 Current password
               </label>
               <input
@@ -136,15 +135,12 @@ export default function SettingsActions() {
                 required
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className={inputClass}
+                className={UNDERLINE_INPUT}
                 placeholder="••••••••"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="new-password"
-                className="text-xs font-medium tracking-widest uppercase text-gray-400"
-              >
+              <label htmlFor="new-password" className={LABEL}>
                 New password
               </label>
               <input
@@ -154,15 +150,12 @@ export default function SettingsActions() {
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className={inputClass}
+                className={UNDERLINE_INPUT}
                 placeholder="••••••••"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="confirm-password"
-                className="text-xs font-medium tracking-widest uppercase text-gray-400"
-              >
+              <label htmlFor="confirm-password" className={LABEL}>
                 Confirm new password
               </label>
               <input
@@ -172,19 +165,19 @@ export default function SettingsActions() {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className={inputClass}
+                className={UNDERLINE_INPUT}
                 placeholder="••••••••"
               />
             </div>
 
             {error && (
-              <p className="rounded-sm border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+              <p className="rounded-sm border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800 transition-colors duration-300 dark:border-red-900 dark:bg-red-950/35 dark:text-red-200">
                 {error}
               </p>
             )}
 
             {success && (
-              <p className="rounded-sm border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-950">
+              <p className="rounded-sm border border-gray-200 bg-neutral-50 px-3 py-2 text-xs text-black transition-colors duration-300 dark:border-gray-800 dark:bg-neutral-950 dark:text-white">
                 {success}
               </p>
             )}
@@ -192,7 +185,7 @@ export default function SettingsActions() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-1 w-full bg-gray-950 py-3 text-sm font-medium tracking-widest uppercase text-white rounded-sm transition-colors hover:bg-gray-800 disabled:opacity-40"
+              className="mt-1 w-full rounded-sm bg-black py-3 text-sm font-medium tracking-widest uppercase text-white transition-colors duration-300 hover:opacity-90 disabled:opacity-40 dark:bg-white dark:text-black"
             >
               {loading ? "Updating…" : "Update password"}
             </button>

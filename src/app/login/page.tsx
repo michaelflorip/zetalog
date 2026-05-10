@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+
+const LABEL =
+  "text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500";
+
+const UNDERLINE_INPUT =
+  "w-full border-b border-neutral-400 bg-transparent pb-2 text-sm text-black outline-none transition-colors duration-300 placeholder:text-neutral-400 focus:border-black dark:border-white/35 dark:text-white dark:placeholder:text-neutral-500 dark:focus:border-white";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,26 +39,22 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6">
+    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 transition-colors duration-300 dark:bg-black">
       <div className="w-full max-w-sm">
-        {/* Wordmark */}
         <Link
           href="/"
-          className="mb-10 block text-sm font-semibold tracking-widest uppercase text-gray-950"
+          className="mb-10 block text-sm font-semibold tracking-widest uppercase text-black transition-colors duration-300 dark:text-white"
         >
           Zetalog
         </Link>
 
-        <h1 className="mb-8 text-2xl font-semibold tracking-tight text-gray-950">
+        <h1 className="mb-8 text-2xl font-semibold tracking-tight text-black transition-colors duration-300 dark:text-white">
           Sign in
         </h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="email"
-              className="text-xs font-medium tracking-widest uppercase text-gray-400"
-            >
+            <label htmlFor="email" className={LABEL}>
               Email
             </label>
             <input
@@ -62,16 +64,13 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border-b border-gray-300 bg-transparent pb-2 text-sm text-gray-950 outline-none placeholder:text-gray-300 focus:border-gray-950 transition-colors"
+              className={UNDERLINE_INPUT}
               placeholder="you@example.com"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="password"
-              className="text-xs font-medium tracking-widest uppercase text-gray-400"
-            >
+            <label htmlFor="password" className={LABEL}>
               Password
             </label>
             <input
@@ -81,13 +80,13 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border-b border-gray-300 bg-transparent pb-2 text-sm text-gray-950 outline-none placeholder:text-gray-300 focus:border-gray-950 transition-colors"
+              className={UNDERLINE_INPUT}
               placeholder="••••••••"
             />
           </div>
 
           {error && (
-            <p className="text-xs text-gray-950 border border-gray-200 px-3 py-2 rounded-sm bg-gray-50">
+            <p className="rounded-sm border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800 transition-colors duration-300 dark:border-red-900 dark:bg-red-950/35 dark:text-red-200">
               {error}
             </p>
           )}
@@ -95,17 +94,17 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 w-full bg-gray-950 py-3 text-sm font-medium tracking-widest uppercase text-white rounded-sm hover:bg-gray-800 disabled:opacity-40 transition-colors"
+            className="mt-2 w-full rounded-sm bg-black py-3 text-sm font-medium tracking-widest uppercase text-white transition-colors duration-300 hover:opacity-90 disabled:opacity-40 dark:bg-white dark:text-black"
           >
             {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
 
-        <p className="mt-12 text-center text-sm text-gray-500">
+        <p className="mt-12 text-center text-sm text-neutral-500 dark:text-neutral-400">
           No account?{" "}
           <Link
             href="/signup"
-            className="font-medium text-gray-950 hover:text-gray-600 transition-colors"
+            className="font-medium text-black transition-colors hover:opacity-80 dark:text-white"
           >
             Sign up
           </Link>
