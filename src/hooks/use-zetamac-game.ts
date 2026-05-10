@@ -32,43 +32,31 @@ function generateProblem(): Problem {
 
   let a: number;
   let b: number;
-  let answer: number;
-  let question: string;
 
   switch (op) {
     case "+": {
       a = randInt(2, 100);
       b = randInt(2, 100);
-      answer = a + b;
-      question = `${a} + ${b}`;
-      break;
+      return { question: `${a} + ${b}`, answer: a + b };
     }
     case "−": {
+      // Reverse of addition: pick two addends, show their sum minus one
       a = randInt(2, 100);
       b = randInt(2, 100);
-      if (a < b) [a, b] = [b, a];
-      answer = a - b;
-      question = `${a} − ${b}`;
-      break;
+      return { question: `${a + b} − ${a}`, answer: b };
     }
     case "×": {
       a = randInt(2, 12);
-      b = randInt(2, 12);
-      answer = a * b;
-      question = `${a} × ${b}`;
-      break;
+      b = randInt(2, 100);
+      return { question: `${a} × ${b}`, answer: a * b };
     }
     case "÷": {
+      // Reverse of multiplication: divisor 2-12, result 2-100
       a = randInt(2, 12);
-      b = randInt(2, 12);
-      const product = a * b;
-      answer = b;
-      question = `${product} ÷ ${a}`;
-      break;
+      b = randInt(2, 100);
+      return { question: `${a * b} ÷ ${a}`, answer: b };
     }
   }
-
-  return { question: question!, answer: answer! };
 }
 
 export function useZetamacGame() {
