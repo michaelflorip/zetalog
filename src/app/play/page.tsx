@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useZetamacGame } from "@/hooks/use-zetamac-game";
+import { createClient } from "@/lib/supabase/client";
 
 const GAME_DURATION_S = 120;
 
@@ -11,11 +12,17 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+/** Dedupe Strict Mode dev double-invoke across remount (same logical game end). */
+function sessionSaveStorageKey(historyTailTs: number, scoreVal: number) {
+  return `zetalog_session_saved_${historyTailTs}_${scoreVal}`;
+}
+
 export default function PlayPage() {
   const {
     status,
     timeLeft,
     score,
+    history,
     currentProblem,
     start,
     reset,
@@ -24,6 +31,90 @@ export default function PlayPage() {
 
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const saveAttemptedRef = useRef(false);
+
+  useEffect(() => {
+    if (status === "playing") {
+      saveAttemptedRef.current = false;
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if (status !== "finished") return;
+
+    async function saveSession() {
+      const lastTs = history[history.length - 1]?.timestamp ?? 0;
+      const dedupeKey = sessionSaveStorageKey(lastTs, score);
+      if (typeof window !== "undefined") {
+        if (window.sessionStorage.getItem(dedupeKey)) {
+          console.log("[Play] Session save skipped (already persisted this round).");
+          return;
+        }
+      }
+
+      if (saveAttemptedRef.current) return;
+      saveAttemptedRef.current = true;
+
+      const supabase = createClient();
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        console.error("[Play] auth.getUser() error:", userError);
+        saveAttemptedRef.current = false;
+        return;
+      }
+
+      if (!user) {
+        console.warn("[Play] No user session — skipping session insert.");
+        saveAttemptedRef.current = false;
+        return;
+      }
+
+      const sessionData = {
+        user_id: user.id,
+        score,
+        raw_data: { history },
+      };
+
+      console.log("Attempting to save session...", sessionData);
+      console.log(
+        "[Play] Verifying insert user_id matches auth user id:",
+        sessionData.user_id === user.id,
+        "| user_id:",
+        sessionData.user_id,
+        "| auth.user.id:",
+        user.id,
+      );
+
+      const { data: insertRows, error: insertError } = await supabase
+        .from("sessions")
+        .insert(sessionData)
+        .select();
+
+      if (insertError) {
+        console.error("[Play] sessions insert error:", insertError);
+        console.error("[Play] insert error details:", {
+          message: insertError.message,
+          code: insertError.code,
+          details: insertError.details,
+          hint: insertError.hint,
+        });
+        saveAttemptedRef.current = false;
+        return;
+      }
+
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem(dedupeKey, "1");
+      }
+      console.log("[Play] Session saved successfully.", insertRows);
+    }
+
+    saveSession();
+  }, [status, score, history]);
 
   useEffect(() => {
     if (status !== "playing" || input === "") return;

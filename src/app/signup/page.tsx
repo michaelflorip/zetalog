@@ -32,7 +32,7 @@ export default function SignupPage() {
     }
 
     if (data.session) {
-      router.push("/play");
+      router.push("/");
       router.refresh();
       return;
     }
