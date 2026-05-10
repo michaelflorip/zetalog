@@ -137,12 +137,16 @@ function LeaderboardRow({
             setOpen((v) => !v);
           }
         }}
-        className={`${gridClass} w-full cursor-pointer py-10 outline-none`}
+        className={`${gridClass} w-full cursor-pointer touch-manipulation py-10 outline-none`}
       >
         {children}
       </div>
       {open && (
-        <div className="border-t border-gray-100 px-2 pb-8 pt-6 dark:border-gray-800/50">
+        <div
+          className="border-t border-gray-100 px-2 pb-8 pt-6 dark:border-gray-800/50"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
           <SessionDetailPanel rawData={rawData} chartHeight={200} />
         </div>
       )}

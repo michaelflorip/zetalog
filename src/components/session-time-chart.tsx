@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import type { ChartThemeColors } from "@/hooks/use-chart-theme-colors";
 import { useChartThemeColors } from "@/hooks/use-chart-theme-colors";
+import { useNarrowViewport } from "@/hooks/use-narrow-viewport";
 
 export type SessionTimingPoint = {
   question: string;
@@ -27,6 +28,41 @@ function buildChartData(points: SessionTimingPoint[]) {
     timeTakenMs: p.timeTakenMs,
     secs: p.timeTakenMs / 1000,
   }));
+}
+
+/** X-axis labels at 1, every 10th question, and always the last (total count). */
+function questionAxisTicks(totalQuestions: number): string[] {
+  if (totalQuestions <= 0) return [];
+  const set = new Set<string>();
+  set.add("1");
+  for (let q = 10; q <= totalQuestions; q += 10) {
+    set.add(String(q));
+  }
+  set.add(String(totalQuestions));
+  return Array.from(set).sort((a, b) => Number(a) - Number(b));
+}
+
+function QuestionNumberTick({
+  x,
+  y,
+  payload,
+}: {
+  x?: number;
+  y?: number;
+  payload?: { value?: string };
+}) {
+  if (x == null || y == null || payload?.value == null) return null;
+  return (
+    <text
+      x={x}
+      y={y}
+      dy={14}
+      textAnchor="middle"
+      className="fill-neutral-400 font-mono text-[10px] tabular-nums"
+    >
+      {payload.value}
+    </text>
+  );
 }
 
 type TooltipPayloadRow = {
@@ -74,6 +110,11 @@ export interface SessionTimeChartProps {
   /** Fixed height area for ResponsiveContainer */
   height?: number;
   className?: string;
+  /**
+   * When true, Tooltip uses click instead of hover (for touch / narrow layouts).
+   * Defaults to automatic: click on narrow viewports.
+   */
+  tooltipTriggerClick?: boolean;
 }
 
 /** Line chart of response time per question (Swiss: thin stroke, no grid). */
@@ -81,8 +122,12 @@ export default function SessionTimeChart({
   points,
   height = 240,
   className,
+  tooltipTriggerClick: tooltipTriggerClickProp,
 }: SessionTimeChartProps) {
   const chart = useChartThemeColors();
+  const narrow = useNarrowViewport();
+  const tooltipTriggerClick =
+    tooltipTriggerClickProp ?? narrow;
 
   if (points.length === 0) {
     return (
@@ -95,20 +140,28 @@ export default function SessionTimeChart({
   }
 
   const data = buildChartData(points);
+  const xTicks = questionAxisTicks(points.length);
+
+  const dotR = narrow ? 4 : 2.5;
+  const activeDotR = narrow ? 7 : 4;
 
   return (
-    <div className={className} style={{ width: "100%", height }}>
+    <div
+      className={`touch-manipulation ${className ?? ""}`}
+      style={{ width: "100%", height }}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}
-          margin={{ top: 8, right: 12, left: -4, bottom: 0 }}
+          margin={{ top: 8, right: 12, left: -4, bottom: 10 }}
         >
           <XAxis
             dataKey="ix"
-            tick={{ fontSize: 10, fill: chart.axis }}
+            type="category"
+            ticks={xTicks}
+            tick={<QuestionNumberTick />}
             tickLine={false}
             axisLine={{ stroke: chart.axis }}
-            interval={points.length <= 24 ? "preserveEnd" : 2}
           />
           <YAxis
             width={40}
@@ -120,6 +173,7 @@ export default function SessionTimeChart({
             domain={["auto", "auto"]}
           />
           <Tooltip
+            trigger={tooltipTriggerClick ? "click" : "hover"}
             content={(props) => (
               <TimingTooltip
                 {...(props as Omit<TimingTooltipProps, "palette">)}
@@ -135,9 +189,9 @@ export default function SessionTimeChart({
             type="monotone"
             dataKey="secs"
             stroke={chart.stroke}
-            strokeWidth={1}
-            dot={{ fill: chart.stroke, strokeWidth: 0, r: 2.5 }}
-            activeDot={{ r: 4, fill: chart.stroke }}
+            strokeWidth={narrow ? 1.25 : 1}
+            dot={{ fill: chart.stroke, strokeWidth: 0, r: dotR }}
+            activeDot={{ r: activeDotR, fill: chart.stroke }}
             isAnimationActive={false}
           />
         </LineChart>
