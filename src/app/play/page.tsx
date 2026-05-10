@@ -208,17 +208,24 @@ export default function PlayPage() {
 
   if (status === "idle") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-white font-sans transition-colors duration-300 dark:bg-black">
-        <div className="flex flex-col items-center gap-8">
-          <h1 className="text-5xl font-semibold tracking-tight text-black transition-colors duration-300 dark:text-white">
+      <div className="flex min-h-[calc(100dvh-3.5rem)] w-full flex-col items-center justify-center bg-white px-4 font-sans transition-colors duration-300 dark:bg-black">
+        <div className="flex w-full flex-col items-center justify-center gap-6 sm:gap-8">
+          <h1 className="text-center text-4xl font-semibold tracking-tight text-black transition-colors duration-300 sm:text-5xl dark:text-white">
             Zetavant
           </h1>
-          <p className="text-base tracking-wide text-neutral-500 dark:text-neutral-400">
+          <p className="max-w-[280px] text-center text-sm leading-relaxed tracking-wide text-neutral-500 sm:text-base dark:text-neutral-400">
             Two minutes. Sharpen speed and accuracy under pressure.
           </p>
-          <button onClick={start} type="button" className={`mt-4 ${PRIMARY_BTN_PLAY}`}>
-            Start
-          </button>
+          <div
+            className="mt-2 flex w-full flex-col items-center gap-4 pb-[max(2rem,env(safe-area-inset-bottom,0px))]"
+          >
+            <button onClick={start} type="button" className={PRIMARY_BTN_PLAY}>
+              Start
+            </button>
+            <p className="max-w-md text-center text-[10px] tracking-widest text-neutral-400 dark:text-neutral-500">
+              2:00 MIN • [+ , − , × , ÷] • ALL INTEGERS
+            </p>
+          </div>
         </div>
       </div>
     );
