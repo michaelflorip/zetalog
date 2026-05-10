@@ -3,8 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useZetamacGame } from "@/hooks/use-zetamac-game";
 import { createClient } from "@/lib/supabase/client";
+import SessionTimeChart from "@/components/session-time-chart";
+import { localCalendarDayUtcIsoRange } from "@/lib/datetime";
 
 const GAME_DURATION_S = 120;
+const SESSION_SOURCE = "zetalog";
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -30,12 +33,16 @@ export default function PlayPage() {
   } = useZetamacGame();
 
   const [input, setInput] = useState("");
+  const [todayAttemptNumber, setTodayAttemptNumber] = useState<number | null>(
+    null,
+  );
   const inputRef = useRef<HTMLInputElement>(null);
   const saveAttemptedRef = useRef(false);
 
   useEffect(() => {
     if (status === "playing") {
       saveAttemptedRef.current = false;
+      setTodayAttemptNumber(null);
     }
   }, [status]);
 
@@ -74,6 +81,24 @@ export default function PlayPage() {
         return;
       }
 
+      const { startIso, endIso } = localCalendarDayUtcIsoRange(new Date());
+      const { count: todayCount, error: countError } = await supabase
+        .from("sessions")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .gte("created_at", startIso)
+        .lte("created_at", endIso);
+
+      if (countError) {
+        console.error("[Play] sessions count error (today local):");
+        console.dir(countError, { depth: null });
+        saveAttemptedRef.current = false;
+        return;
+      }
+
+      const attempt_number = (todayCount ?? 0) + 1;
+      setTodayAttemptNumber(attempt_number);
+
       const totalAttempts = history.length;
       const correctAttempts = history.filter((e) => e.isCorrect).length;
       const accuracy =
@@ -86,6 +111,8 @@ export default function PlayPage() {
         score,
         accuracy,
         duration_seconds: GAME_DURATION_S,
+        attempt_number,
+        source: SESSION_SOURCE,
         raw_data: { history },
       };
 
@@ -110,6 +137,7 @@ export default function PlayPage() {
       if (insertError) {
         console.error("[Play] sessions insert failed.");
         console.dir(insertError, { depth: null });
+        setTodayAttemptNumber(null);
         saveAttemptedRef.current = false;
         return;
       }
@@ -161,21 +189,45 @@ export default function PlayPage() {
   }
 
   if (status === "finished") {
+    const timingPoints = history.map((h) => ({
+      question: h.question,
+      timeTakenMs: h.timeTakenMs,
+    }));
+
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-white font-sans">
-        <div className="flex flex-col items-center gap-6">
-          <p className="text-xs font-medium tracking-widest uppercase text-gray-400">
-            Game Over
-          </p>
-          <p className="text-8xl font-semibold tracking-tight text-gray-950 tabular-nums">
-            {score}
-          </p>
-          <p className="text-sm text-gray-500">
-            problems solved in 2 minutes
-          </p>
+      <div className="flex min-h-screen flex-col items-center bg-white px-6 py-12 font-sans">
+        <div className="flex w-full max-w-2xl flex-col items-center gap-8">
+          <div className="flex flex-col items-center gap-6">
+            <p className="text-xs font-medium tracking-widest uppercase text-gray-400">
+              Game Over
+            </p>
+            <p className="text-8xl font-semibold tracking-tight text-gray-950 tabular-nums">
+              {score}
+            </p>
+            <p className="text-sm text-gray-500">
+              problems solved in 2 minutes
+            </p>
+            {todayAttemptNumber != null && (
+              <p className="text-center text-sm font-medium tracking-tight text-gray-950">
+                Session Complete — Attempt #{todayAttemptNumber} today
+              </p>
+            )}
+          </div>
+
+          <div className="w-full border border-gray-200 bg-white px-5 py-6 rounded-sm">
+            <p className="text-xs font-medium tracking-widest uppercase text-gray-400">
+              Time per question
+            </p>
+            <SessionTimeChart
+              points={timingPoints}
+              height={260}
+              className="mt-4 w-full"
+            />
+          </div>
+
           <button
             onClick={start}
-            className="mt-6 px-10 py-3 text-sm font-medium tracking-widest uppercase bg-gray-950 text-white rounded-sm hover:bg-gray-800 transition-colors"
+            className="px-10 py-3 text-sm font-medium tracking-widest uppercase bg-gray-950 text-white rounded-sm transition-colors hover:bg-gray-800"
           >
             Restart
           </button>

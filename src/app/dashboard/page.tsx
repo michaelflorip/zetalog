@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import DashboardCharts from "@/components/dashboard-charts";
+import DashboardSessionList from "@/components/dashboard-session-list";
 import { averagesByOperator } from "@/lib/dashboard-aggregates";
 import { createClient } from "@/lib/supabase/server";
 
@@ -17,7 +18,7 @@ export default async function DashboardPage() {
   const [sessionsRes, highRes, countRes] = await Promise.all([
     supabase
       .from("sessions")
-      .select("score, created_at, raw_data")
+      .select("id, score, created_at, raw_data, attempt_number")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(50),
@@ -106,6 +107,19 @@ export default async function DashboardPage() {
         </div>
 
         <DashboardCharts lineData={lineData} barData={barData} />
+
+        <DashboardSessionList
+          sessions={sessions.map((s) => ({
+            id:
+              s.id != null && s.id !== ""
+                ? String(s.id)
+                : `session-${s.created_at}-${s.score}`,
+            created_at: s.created_at,
+            score: s.score,
+            attempt_number: s.attempt_number,
+            raw_data: s.raw_data,
+          }))}
+        />
       </div>
     </div>
   );
