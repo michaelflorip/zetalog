@@ -13,7 +13,7 @@ export interface DashboardSessionRow {
 }
 
 const labelMutedClass =
-  "text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500";
+  "font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500";
 
 export default function DashboardSessionList({
   sessions,
@@ -26,9 +26,9 @@ export default function DashboardSessionList({
 
   return (
     <section className="rounded-sm border border-gray-200 bg-white dark:border-gray-800 dark:bg-black">
-      <div className="border-b border-gray-200 px-6 py-5 dark:border-gray-800">
+      <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-800">
         <h2 className={labelMutedClass}>Recent sessions</h2>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+        <p className="mt-1 font-mono text-[10px] text-neutral-400 dark:text-neutral-500">
           Last {sessions.length} games
         </p>
       </div>
@@ -45,7 +45,7 @@ function SessionListItem({ session }: { session: DashboardSessionRow }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <li className="px-6 py-5 transition-colors duration-300">
+    <li className="px-4 py-4 transition-colors duration-300">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-wrap gap-x-10 gap-y-4">
           <div className="min-w-[96px]">
