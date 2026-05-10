@@ -74,35 +74,42 @@ export default function PlayPage() {
         return;
       }
 
-      const sessionData = {
+      const totalAttempts = history.length;
+      const correctAttempts = history.filter((e) => e.isCorrect).length;
+      const accuracy =
+        totalAttempts === 0
+          ? 0
+          : Number(((correctAttempts / totalAttempts) * 100).toFixed(2));
+
+      const row = {
         user_id: user.id,
         score,
+        accuracy,
+        duration_seconds: GAME_DURATION_S,
         raw_data: { history },
       };
 
-      console.log("Attempting to save session...", sessionData);
+      const payload = [row];
+
+      console.log("Attempting to save session...", row);
+      console.log("[Play] Session insert payload (array passed to .insert):", payload);
       console.log(
         "[Play] Verifying insert user_id matches auth user id:",
-        sessionData.user_id === user.id,
+        row.user_id === user.id,
         "| user_id:",
-        sessionData.user_id,
+        row.user_id,
         "| auth.user.id:",
         user.id,
       );
 
       const { data: insertRows, error: insertError } = await supabase
         .from("sessions")
-        .insert(sessionData)
+        .insert(payload)
         .select();
 
       if (insertError) {
-        console.error("[Play] sessions insert error:", insertError);
-        console.error("[Play] insert error details:", {
-          message: insertError.message,
-          code: insertError.code,
-          details: insertError.details,
-          hint: insertError.hint,
-        });
+        console.error("[Play] sessions insert failed.");
+        console.dir(insertError, { depth: null });
         saveAttemptedRef.current = false;
         return;
       }
