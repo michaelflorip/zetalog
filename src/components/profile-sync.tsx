@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 function profileVerifiedStorageKey(userId: string) {
-  return `zetalog_profile_verified_${userId}`;
+  return `zetavant_profile_verified_${userId}`;
 }
 
 export default function ProfileSync({

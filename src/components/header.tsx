@@ -11,7 +11,7 @@ export default function Header() {
           href="/"
           className="text-sm font-normal tracking-[0.2em] uppercase text-black transition-colors duration-300 dark:text-white"
         >
-          ZETALOG
+          ZETAVANT
         </Link>
 
         <nav

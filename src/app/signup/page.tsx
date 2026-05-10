@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getSiteOrigin } from "@/lib/site-url";
 
 const LABEL =
   "text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500";
@@ -25,9 +26,13 @@ export default function SignupPage() {
     setError(null);
 
     const supabase = createClient();
+    const origin = getSiteOrigin();
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${origin}/login`,
+      },
     });
 
     setLoading(false);
@@ -53,7 +58,7 @@ export default function SignupPage() {
           href="/"
           className="mb-10 block text-sm font-semibold tracking-widest uppercase text-black transition-colors duration-300 dark:text-white"
         >
-          Zetalog
+          Zetavant
         </Link>
 
         {awaitingConfirmation ? (
@@ -66,7 +71,11 @@ export default function SignupPage() {
               <span className="font-mono text-black dark:text-white">
                 {email}
               </span>
-              . Open it to confirm your account, then sign in.
+              . Open it to confirm your account, then sign in at{" "}
+              <span className="font-mono text-black dark:text-white">
+                {getSiteOrigin()}
+              </span>
+              .
             </p>
             <Link
               href="/login"

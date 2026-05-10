@@ -30,6 +30,9 @@ const HOF_EMPTY =
 
 const PAGE_SIZE = 1000;
 
+/** App-originated sessions (includes legacy `zetalog` source). */
+const LEADERBOARD_SESSION_SOURCES = ["zetavant", "zetalog"] as const;
+
 function tabButtonClass(active: boolean) {
   return [
     "pb-3 text-xs font-normal uppercase tracking-[0.22em] transition-colors duration-300",
@@ -53,6 +56,7 @@ async function fetchAllSessionsForUsers(
       .from("sessions")
       .select("score, created_at, user_id, attempt_number")
       .in("user_id", userIds)
+      .in("source", [...LEADERBOARD_SESSION_SOURCES])
       .range(from, from + PAGE_SIZE - 1);
 
     if (error) throw error;
@@ -155,6 +159,7 @@ export default function LeaderboardClient() {
         .from("sessions")
         .select("score, created_at, user_id, attempt_number")
         .in("user_id", userIds)
+        .in("source", [...LEADERBOARD_SESSION_SOURCES])
         .order("score", { ascending: false })
         .limit(50);
 
@@ -226,7 +231,8 @@ export default function LeaderboardClient() {
           Leaderboard
         </h1>
         <p className="mt-4 max-w-lg text-sm leading-relaxed text-neutral-500 transition-colors duration-300 dark:text-neutral-400">
-          Highest scores among players who have made their profiles public.
+          Rankings from players who have chosen to share results on the public
+          Hall of Fame.
         </p>
 
         <div className="mt-16 flex flex-wrap gap-x-8 gap-y-2 border-b border-gray-200 pb-px transition-colors duration-300 dark:border-gray-800 sm:gap-x-10">

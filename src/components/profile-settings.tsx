@@ -67,8 +67,8 @@ export default function ProfileSettings({
             id={`${toggleId}-desc`}
             className="mt-2 text-xs leading-relaxed text-neutral-500 dark:text-neutral-400"
           >
-            If enabled, your scores and username will appear on the global
-            leaderboard.
+            If enabled, your username and best results can appear on the public
+            Hall of Fame.
           </p>
           {error && (
             <p className="mt-3 text-xs text-red-700 dark:text-red-400" role="alert">

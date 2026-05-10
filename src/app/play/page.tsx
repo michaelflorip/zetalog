@@ -8,7 +8,7 @@ import { localCalendarDayUtcIsoRange } from "@/lib/datetime";
 import { createClient } from "@/lib/supabase/client";
 
 const GAME_DURATION_S = 120;
-const SESSION_SOURCE = "zetalog";
+const SESSION_SOURCE = "zetavant";
 
 const PRIMARY_BTN_PLAY =
   "px-10 py-3 text-sm font-medium tracking-widest uppercase rounded-sm transition-colors duration-300 bg-black text-white hover:opacity-90 dark:bg-white dark:text-black";
@@ -30,7 +30,7 @@ function formatTime(seconds: number): string {
 
 /** Dedupe Strict Mode dev double-invoke across remount (same logical game end). */
 function sessionSaveStorageKey(historyTailTs: number, scoreVal: number) {
-  return `zetalog_session_saved_${historyTailTs}_${scoreVal}`;
+  return `zetavant_session_saved_${historyTailTs}_${scoreVal}`;
 }
 
 export default function PlayPage() {
@@ -184,10 +184,10 @@ export default function PlayPage() {
       <div className="flex min-h-screen flex-col items-center justify-center bg-white font-sans transition-colors duration-300 dark:bg-black">
         <div className="flex flex-col items-center gap-8">
           <h1 className="text-5xl font-semibold tracking-tight text-black transition-colors duration-300 dark:text-white">
-            Zetalog
+            Zetavant
           </h1>
           <p className="text-base tracking-wide text-neutral-500 dark:text-neutral-400">
-            120 seconds. How fast can you go?
+            Two minutes. Sharpen speed and accuracy under pressure.
           </p>
           <button onClick={start} type="button" className={`mt-4 ${PRIMARY_BTN_PLAY}`}>
             Start

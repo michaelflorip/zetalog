@@ -45,7 +45,7 @@ export default function LoginPage() {
           href="/"
           className="mb-10 block text-sm font-semibold tracking-widest uppercase text-black transition-colors duration-300 dark:text-white"
         >
-          Zetalog
+          Zetavant
         </Link>
 
         <h1 className="mb-8 text-2xl font-semibold tracking-tight text-black transition-colors duration-300 dark:text-white">

@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/header";
 import ProfileSync from "@/components/profile-sync";
 import ThemeProvider from "@/components/theme-provider";
+import { getSiteOrigin } from "@/lib/site-url";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,9 +16,35 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_DESCRIPTION =
+  "A high-performance mental math training platform for competitive mastery.";
+
+const siteOrigin = getSiteOrigin();
+const siteUrl = `${siteOrigin}/`;
+
 export const metadata: Metadata = {
-  title: "Zetalog",
-  description: "Mental math speed trainer",
+  metadataBase: new URL(siteOrigin),
+  title: "Zetavant",
+  description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: "/",
+  },
+  icons: {
+    icon: "/favicon.svg",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteUrl,
+    siteName: "Zetavant",
+    title: "Zetavant",
+    description: SITE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Zetavant",
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export default function RootLayout({

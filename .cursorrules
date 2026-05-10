@@ -1,4 +1,4 @@
-# Zetalog Project Rules
+# Zetavant Project Rules
 - **Stack:** Next.js (App Router), Tailwind CSS, Supabase (Postgres), Lucide React (Icons).
 - **Aesthetic:** Swiss Design System. Use monochrome colors (white, black, gray-50 to gray-950). High-contrast typography. Use 'Geist' or 'Inter' sans-serif. No rounded corners larger than `rounded-sm`.
 - **Code Style:** Use functional components and TypeScript interfaces. Prefer Tailwind for all styling.

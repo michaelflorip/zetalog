@@ -21,14 +21,14 @@ export default async function Home() {
       <div className="flex flex-1 flex-col bg-white font-sans transition-colors duration-300 dark:bg-black">
         <main className="mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-8 py-24 text-center">
           <p className="text-sm font-semibold tracking-widest uppercase text-black transition-colors duration-300 dark:text-white">
-            Zetalog
+            Zetavant
           </p>
           <h1 className="mt-10 text-3xl font-semibold tracking-tight text-black transition-colors duration-300 dark:text-white sm:text-4xl">
-            High-performance mental math
+            Master your mental math
           </h1>
           <p className="mt-6 max-w-md text-base leading-relaxed text-neutral-500 dark:text-neutral-400">
-            Track speed, accuracy, and progress with a lean practice flow built
-            for repetition and clarity.
+            A disciplined practice environment for speed, accuracy, and
+            competitive mastery—built for repetition with clarity.
           </p>
           <Link href="/login" className={`mt-14 ${PRIMARY_BTN}`}>
             Get Started
@@ -52,7 +52,7 @@ export default async function Home() {
     <div className="flex flex-1 flex-col bg-white font-sans transition-colors duration-300 dark:bg-black">
       <main className="mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-8 py-24 text-center">
         <p className="text-sm font-semibold tracking-widest uppercase text-black transition-colors duration-300 dark:text-white">
-          Zetalog
+          Zetavant
         </p>
         <h1 className="mt-10 text-3xl font-semibold tracking-tight text-black transition-colors duration-300 dark:text-white sm:text-4xl">
           Welcome back
@@ -65,7 +65,7 @@ export default async function Home() {
 
         <div className="mt-16 w-full border-t border-gray-200 pt-16 transition-colors duration-300 dark:border-gray-800">
           <p className="text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500">
-            Most recent score
+            Latest peak score
           </p>
           {recentScore != null ? (
             <p className="mt-4 text-6xl font-semibold tabular-nums tracking-tight text-black transition-colors duration-300 dark:text-white sm:text-7xl">
@@ -73,7 +73,7 @@ export default async function Home() {
             </p>
           ) : (
             <p className="mt-4 text-base text-neutral-500 dark:text-neutral-400">
-              No sessions yet. Start a round to record your first score.
+              No rounds yet. Start a session to establish your baseline.
             </p>
           )}
         </div>

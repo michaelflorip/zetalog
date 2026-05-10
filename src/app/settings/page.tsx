@@ -33,7 +33,7 @@ export default async function SettingsPage() {
           Settings
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
-          Account details and actions.
+          Your practice identity, preferences, and how you appear to others.
         </p>
 
         <section className="mt-20 space-y-12">
