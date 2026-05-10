@@ -77,14 +77,37 @@ export default function PlayPage() {
       const supabase = createClient();
 
       const {
-        data: { user },
+        data: { user: userFromGetUser },
         error: userError,
       } = await supabase.auth.getUser();
 
       if (userError) {
-        console.error("[Play] auth.getUser() error:", userError);
+        console.error("[Play] auth.getUser() error:");
+        console.dir(userError, { depth: null });
         saveAttemptedRef.current = false;
         return;
+      }
+
+      let user = userFromGetUser;
+
+      if (!user) {
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error("[Play] auth.getSession() error:");
+          console.dir(sessionError, { depth: null });
+        }
+
+        user = session?.user ?? null;
+
+        if (user) {
+          console.warn(
+            "[Play] getUser() had no user; using session.user for insert (check JWT / cookie sync).",
+          );
+        }
       }
 
       if (!user) {
@@ -102,7 +125,7 @@ export default function PlayPage() {
         .lte("created_at", endIso);
 
       if (countError) {
-        console.error("[Play] sessions count error (today local):");
+        console.error("[Play] sessions count error (today local) — RLS may block SELECT on sessions:");
         console.dir(countError, { depth: null });
         saveAttemptedRef.current = false;
         return;
@@ -128,10 +151,7 @@ export default function PlayPage() {
         raw_data: { history },
       };
 
-      const payload = [row];
-
-      console.log("Attempting to save session...", row);
-      console.log("[Play] Session insert payload (array passed to .insert):", payload);
+      console.log("[Play] Attempting to save session...", row);
       console.log(
         "[Play] Verifying insert user_id matches auth user id:",
         row.user_id === user.id,
@@ -141,26 +161,33 @@ export default function PlayPage() {
         user.id,
       );
 
-      const { data: insertRows, error: insertError } = await supabase
-        .from("sessions")
-        .insert(payload)
-        .select();
+      try {
+        const { data: insertRows, error: insertError } = await supabase
+          .from("sessions")
+          .insert(row)
+          .select();
 
-      if (insertError) {
-        console.error("[Play] sessions insert failed.");
-        console.dir(insertError, { depth: null });
+        if (insertError) {
+          console.error("[Play] sessions insert failed (code / details / hint):");
+          console.dir(insertError, { depth: null });
+          setTodayAttemptNumber(null);
+          saveAttemptedRef.current = false;
+          return;
+        }
+
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem(dedupeKey, "1");
+        }
+        console.log("[Play] Session saved successfully.", insertRows);
+      } catch (err) {
+        console.error("[Play] sessions insert threw (unexpected):");
+        console.dir(err, { depth: null });
         setTodayAttemptNumber(null);
         saveAttemptedRef.current = false;
-        return;
       }
-
-      if (typeof window !== "undefined") {
-        window.sessionStorage.setItem(dedupeKey, "1");
-      }
-      console.log("[Play] Session saved successfully.", insertRows);
     }
 
-    saveSession();
+    void saveSession();
   }, [status, score, history]);
 
   useEffect(() => {
