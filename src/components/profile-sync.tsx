@@ -1,72 +1,115 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+
+function profileVerifiedStorageKey(userId: string) {
+  return `zetalog_profile_verified_${userId}`;
+}
 
 export default function ProfileSync({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const inFlightRef = useRef(new Set<string>());
+
   useEffect(() => {
     const supabase = createClient();
+    const inFlight = inFlightRef.current;
 
-    async function syncProfile() {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError) {
-        console.error("[ProfileSync] auth.getUser() error:", userError);
-        return;
+    async function syncProfile(userId: string, email: string | null) {
+      if (typeof window !== "undefined") {
+        if (sessionStorage.getItem(profileVerifiedStorageKey(userId))) {
+          console.log(
+            "[ProfileSync] Profile already verified this browser session, skipping.",
+            userId,
+          );
+          return;
+        }
       }
 
-      if (!user) {
-        console.log("[ProfileSync] No authenticated user detected.");
+      if (inFlight.has(userId)) {
+        console.log("[ProfileSync] Sync already in flight for user, skipping.", userId);
         return;
       }
+      inFlight.add(userId);
 
-      console.log("[ProfileSync] Authenticated user:", user.id);
+      try {
+        console.log("[ProfileSync] Running profile sync for user:", userId);
 
-      const { data: existing, error: selectError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("id", user.id)
-        .maybeSingle();
+        const { data: existing, error: selectError } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", userId)
+          .maybeSingle();
 
-      if (selectError) {
-        console.error("[ProfileSync] profiles select error:", selectError);
-        return;
+        if (selectError) {
+          console.error("[ProfileSync] profiles select error:", selectError);
+          return;
+        }
+
+        if (existing) {
+          console.log(
+            "[ProfileSync] Profile row already exists, skipping upsert.",
+          );
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem(profileVerifiedStorageKey(userId), "1");
+          }
+          return;
+        }
+
+        const username = (email ?? "").split("@")[0];
+        const upsertPayload = {
+          id: userId,
+          username,
+          full_name: email ?? "",
+        };
+
+        console.log(
+          "[ProfileSync] Firing profiles upsert for new user...",
+          upsertPayload,
+        );
+
+        const { error: upsertError } = await supabase
+          .from("profiles")
+          .upsert(upsertPayload);
+
+        if (upsertError) {
+          console.error("[ProfileSync] profiles upsert error:", upsertError);
+          return;
+        }
+
+        console.log("[ProfileSync] profiles upsert completed successfully.");
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(profileVerifiedStorageKey(userId), "1");
+        }
+      } finally {
+        inFlight.delete(userId);
       }
-
-      if (existing) {
-        console.log("[ProfileSync] Profile row already exists, skipping upsert.");
-        return;
-      }
-
-      const username = (user.email ?? "").split("@")[0];
-      const upsertPayload = {
-        id: user.id,
-        username,
-        full_name: user.email ?? "",
-      };
-
-      console.log("[ProfileSync] Firing profiles upsert for new user...", upsertPayload);
-
-      const { error: upsertError } = await supabase
-        .from("profiles")
-        .upsert(upsertPayload);
-
-      if (upsertError) {
-        console.error("[ProfileSync] profiles upsert error:", upsertError);
-        return;
-      }
-
-      console.log("[ProfileSync] profiles upsert completed successfully.");
     }
 
-    syncProfile();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("[ProfileSync] onAuthStateChange:", event);
+
+      if (event !== "INITIAL_SESSION" && event !== "SIGNED_IN") {
+        return;
+      }
+
+      if (!session?.user) {
+        console.log("[ProfileSync] No session user for event:", event);
+        return;
+      }
+
+      const { id, email } = session.user;
+      void syncProfile(id, email ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   return <>{children}</>;
