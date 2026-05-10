@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import SessionTimeChart, {
-  sanitizeTimingPoints,
-} from "@/components/session-time-chart";
+import SessionDetailPanel from "@/components/session-detail-panel";
 import { formatSwissDate } from "@/lib/datetime";
 
 export interface DashboardSessionRow {
@@ -45,7 +43,6 @@ export default function DashboardSessionList({
 
 function SessionListItem({ session }: { session: DashboardSessionRow }) {
   const [open, setOpen] = useState(false);
-  const points = sanitizeTimingPoints(session.raw_data);
 
   return (
     <li className="px-6 py-5 transition-colors duration-300">
@@ -75,17 +72,12 @@ function SessionListItem({ session }: { session: DashboardSessionRow }) {
           onClick={() => setOpen((v) => !v)}
           className="text-xs font-medium tracking-widest uppercase text-neutral-500 transition-colors hover:text-black dark:text-neutral-400 dark:hover:text-white"
         >
-          {open ? "Collapse" : "Expand details"}
+          {open ? "Collapse" : "Expand"}
         </button>
       </div>
       {open && (
         <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-800">
-          <p className={labelMutedClass}>Time per question</p>
-          <SessionTimeChart
-            points={points}
-            height={260}
-            className="mt-4 max-w-full"
-          />
+          <SessionDetailPanel rawData={session.raw_data} />
         </div>
       )}
     </li>

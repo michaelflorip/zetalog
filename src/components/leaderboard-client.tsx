@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import SessionDetailPanel from "@/components/session-detail-panel";
 import { createClient } from "@/lib/supabase/client";
 import {
   formatSwissDate,
@@ -15,6 +16,7 @@ interface SessionRow {
   created_at: string;
   user_id: string;
   attempt_number: number | null;
+  raw_data: unknown;
 }
 
 interface LeaderRow {
@@ -23,6 +25,7 @@ interface LeaderRow {
   score: number;
   created_at: string;
   attempt_number: number | null;
+  raw_data: unknown;
 }
 
 const HOF_EMPTY =
@@ -54,7 +57,7 @@ async function fetchAllSessionsForUsers(
   for (;;) {
     const { data, error } = await supabase
       .from("sessions")
-      .select("score, created_at, user_id, attempt_number")
+      .select("score, created_at, user_id, attempt_number, raw_data")
       .in("user_id", userIds)
       .in("source", [...LEADERBOARD_SESSION_SOURCES])
       .range(from, from + PAGE_SIZE - 1);
@@ -69,6 +72,7 @@ async function fetchAllSessionsForUsers(
         user_id: s.user_id as string,
         attempt_number:
           s.attempt_number != null ? Number(s.attempt_number) : null,
+        raw_data: s.raw_data,
       });
     }
 
@@ -106,7 +110,44 @@ function buildHallOfFameRows(
     score: s.score,
     created_at: s.created_at,
     attempt_number: null,
+    raw_data: s.raw_data,
   }));
+}
+
+function LeaderboardRow({
+  gridClass,
+  rawData,
+  children,
+}: {
+  gridClass: string;
+  rawData: unknown;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <li className="border-b border-gray-200 transition-colors duration-300 dark:border-gray-800">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setOpen((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setOpen((v) => !v);
+          }
+        }}
+        className={`${gridClass} w-full cursor-pointer py-10 outline-none`}
+      >
+        {children}
+      </div>
+      {open && (
+        <div className="border-t border-gray-100 px-2 pb-8 pt-6 dark:border-gray-800/50">
+          <SessionDetailPanel rawData={rawData} chartHeight={200} />
+        </div>
+      )}
+    </li>
+  );
 }
 
 export default function LeaderboardClient() {
@@ -157,7 +198,7 @@ export default function LeaderboardClient() {
 
       let q = supabase
         .from("sessions")
-        .select("score, created_at, user_id, attempt_number")
+        .select("score, created_at, user_id, attempt_number, raw_data")
         .in("user_id", userIds)
         .in("source", [...LEADERBOARD_SESSION_SOURCES])
         .order("score", { ascending: false })
@@ -187,6 +228,7 @@ export default function LeaderboardClient() {
         created_at: s.created_at as string,
         attempt_number:
           s.attempt_number != null ? Number(s.attempt_number) : null,
+        raw_data: s.raw_data,
       }));
 
       setRows(list);
@@ -220,9 +262,6 @@ export default function LeaderboardClient() {
 
   const headerRowClass =
     "border-b border-gray-200 py-5 text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400 transition-colors duration-300 dark:border-gray-800 dark:text-neutral-500";
-
-  const dataRowClass =
-    "w-full border-b border-gray-200 py-10 transition-colors duration-300 dark:border-gray-800";
 
   return (
     <div className="flex flex-1 flex-col bg-white font-sans transition-colors duration-300 dark:bg-black">
@@ -303,9 +342,10 @@ export default function LeaderboardClient() {
                   </header>
                   <ul className="w-full" role="list">
                     {rows.map((r, i) => (
-                      <li
+                      <LeaderboardRow
                         key={`${tab}-${r.created_at}-${r.username}-${r.score}-${i}`}
-                        className={`${gridHof} ${dataRowClass}`}
+                        gridClass={gridHof}
+                        rawData={r.raw_data}
                       >
                         <span className="text-left font-mono text-sm tabular-nums text-neutral-500 dark:text-neutral-400">
                           #{r.rank}
@@ -319,7 +359,7 @@ export default function LeaderboardClient() {
                         <span className="text-right font-mono text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
                           {formatSwissDate(r.created_at)}
                         </span>
-                      </li>
+                      </LeaderboardRow>
                     ))}
                   </ul>
                 </>
@@ -336,9 +376,10 @@ export default function LeaderboardClient() {
                   </header>
                   <ul className="w-full" role="list">
                     {rows.map((r, i) => (
-                      <li
+                      <LeaderboardRow
                         key={`${tab}-${r.created_at}-${r.username}-${r.score}-${i}`}
-                        className={`${gridPerf} ${dataRowClass}`}
+                        gridClass={gridPerf}
+                        rawData={r.raw_data}
                       >
                         <span className="text-left font-mono text-sm tabular-nums text-neutral-500 dark:text-neutral-400">
                           #{r.rank}
@@ -355,7 +396,7 @@ export default function LeaderboardClient() {
                         <span className="text-right font-mono text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
                           {formatSwissDate(r.created_at)}
                         </span>
-                      </li>
+                      </LeaderboardRow>
                     ))}
                   </ul>
                 </>

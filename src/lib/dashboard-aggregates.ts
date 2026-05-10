@@ -38,6 +38,47 @@ export function eventsFromRawData(raw: unknown): RawAttempt[] {
   return [];
 }
 
+export interface OperandCompositionEntry {
+  operator: OperatorLabel;
+  symbol: string;
+  count: number;
+  percentage: number;
+}
+
+const OPERATOR_SYMBOLS: Record<OperatorLabel, string> = {
+  Addition: "+",
+  Subtraction: "−",
+  Multiplication: "×",
+  Division: "÷",
+};
+
+export function operandComposition(rawData: unknown): OperandCompositionEntry[] {
+  const events = eventsFromRawData(rawData);
+  const counts: Record<OperatorLabel, number> = {
+    Addition: 0,
+    Subtraction: 0,
+    Multiplication: 0,
+    Division: 0,
+  };
+
+  for (const ev of events) {
+    const op = ev.question ? operationFromQuestion(ev.question) : null;
+    if (op) counts[op] += 1;
+  }
+
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  if (total === 0) return [];
+
+  return OPERATOR_ORDER
+    .map((operator) => ({
+      operator,
+      symbol: OPERATOR_SYMBOLS[operator],
+      count: counts[operator],
+      percentage: Number(((counts[operator] / total) * 100).toFixed(1)),
+    }))
+    .filter((entry) => entry.count > 0);
+}
+
 export function averagesByOperator(
   sessionsWithRaw: { raw_data: unknown }[],
 ): { operator: OperatorLabel; avgMs: number | null }[] {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import SessionTimeChart from "@/components/session-time-chart";
+import SessionDetailPanel from "@/components/session-detail-panel";
 import { useZetamacGame } from "@/hooks/use-zetamac-game";
 import { localCalendarDayUtcIsoRange } from "@/lib/datetime";
 import { createClient } from "@/lib/supabase/client";
@@ -225,11 +225,6 @@ export default function PlayPage() {
   }
 
   if (status === "finished") {
-    const timingPoints = history.map((h) => ({
-      question: h.question,
-      timeTakenMs: h.timeTakenMs,
-    }));
-
     return (
       <div className="flex min-h-screen flex-col items-center bg-white px-6 py-12 font-sans transition-colors duration-300 dark:bg-black">
         <div className="flex w-full max-w-2xl flex-col items-center gap-8">
@@ -249,11 +244,9 @@ export default function PlayPage() {
           </div>
 
           <div className="w-full rounded-sm border border-gray-200 bg-white px-5 py-6 transition-colors duration-300 dark:border-gray-800 dark:bg-black">
-            <p className={LABEL_MUTED}>Time per question</p>
-            <SessionTimeChart
-              points={timingPoints}
-              height={260}
-              className="mt-4 w-full"
+            <SessionDetailPanel
+              rawData={{ history }}
+              chartHeight={260}
             />
           </div>
 
