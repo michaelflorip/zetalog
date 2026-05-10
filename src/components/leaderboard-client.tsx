@@ -206,19 +206,18 @@ export default function LeaderboardClient() {
       (noPublicProfiles && tab !== "hof"));
   const showTable = !loading && !error && rows.length > 0;
 
-  /** Shared 5-col template: Rank | Username | Attempt (or spacer) | Score | Date — keeps alignment across tabs. */
-  const gridCols =
-    "grid-cols-[44px_minmax(0,1fr)_minmax(72px,96px)_52px_auto] sm:grid-cols-[52px_minmax(0,1fr)_minmax(88px,104px)_56px_auto]";
+  const isHof = tab === "hof";
 
-  const gridHeaderClass = [
-    "grid items-baseline gap-x-6 gap-y-1 border-b border-gray-200 py-5 text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400 transition-colors duration-300 dark:border-gray-800 dark:text-neutral-500 sm:gap-x-10",
-    gridCols,
-  ].join(" ");
+  const gridHof =
+    "grid w-full grid-cols-[0.5fr_2fr_1fr_1.5fr] items-center gap-x-4 sm:gap-x-6";
+  const gridPerf =
+    "grid w-full grid-cols-[0.5fr_2fr_1fr_1fr_1.5fr] items-center gap-x-4 sm:gap-x-6";
 
-  const gridRowClass = [
-    "grid items-baseline gap-x-6 gap-y-2 border-b border-gray-200 py-12 transition-colors duration-300 last:border-b-0 dark:border-gray-800 sm:gap-x-10",
-    gridCols,
-  ].join(" ");
+  const headerRowClass =
+    "border-b border-gray-200 py-5 text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400 transition-colors duration-300 dark:border-gray-800 dark:text-neutral-500";
+
+  const dataRowClass =
+    "w-full border-b border-gray-200 py-10 transition-colors duration-300 dark:border-gray-800";
 
   return (
     <div className="flex flex-1 flex-col bg-white font-sans transition-colors duration-300 dark:bg-black">
@@ -287,59 +286,74 @@ export default function LeaderboardClient() {
           )}
 
           {showTable && (
-            <div className="border-t border-gray-200 transition-colors duration-300 dark:border-gray-800">
-              <header className={gridHeaderClass}>
-                <span>Rank</span>
-                <span>Username</span>
-                {tab === "hof" ? (
-                  <span className="invisible select-none" aria-hidden="true">
-                    Attempt
-                  </span>
-                ) : (
-                  <span className="text-right sm:text-left">Attempt</span>
-                )}
-                <span className="text-right">Score</span>
-                <span className="text-right">Date</span>
-              </header>
-              <ul role="list">
-                {rows.map((r, i) => (
-                  <li
-                    key={`${tab}-${r.created_at}-${r.username}-${r.score}-${i}`}
-                    className={gridRowClass}
-                  >
-                    <span className="font-mono text-sm tabular-nums text-neutral-500 dark:text-neutral-400">
-                      #{r.rank}
-                    </span>
-                    <span className="break-all font-mono text-sm text-black dark:text-white">
-                      {r.username}
-                    </span>
-                    {tab === "hof" ? (
-                      <span
-                        className="invisible text-right font-mono text-[10px] sm:text-left sm:text-xs"
-                        aria-hidden="true"
+            <div className="w-full border-t border-gray-200 transition-colors duration-300 dark:border-gray-800">
+              {isHof ? (
+                <>
+                  <header className={`${gridHof} ${headerRowClass}`}>
+                    <span className="text-left">Rank</span>
+                    <span className="text-left">Username</span>
+                    <span className="text-center">Score</span>
+                    <span className="text-right">Date</span>
+                  </header>
+                  <ul className="w-full" role="list">
+                    {rows.map((r, i) => (
+                      <li
+                        key={`${tab}-${r.created_at}-${r.username}-${r.score}-${i}`}
+                        className={`${gridHof} ${dataRowClass}`}
                       >
-                        #0
-                      </span>
-                    ) : (
-                      <span className="text-right font-mono text-[10px] uppercase tracking-wider text-neutral-500 dark:text-neutral-400 sm:text-left sm:text-xs">
-                        {r.attempt_number != null ? `#${r.attempt_number}` : "—"}
-                      </span>
-                    )}
-                    <span
-                      className={
-                        tab === "hof"
-                          ? "text-right font-mono text-sm font-bold tabular-nums text-black dark:text-white"
-                          : "text-right font-mono text-sm font-medium tabular-nums text-black dark:text-white"
-                      }
-                    >
-                      {r.score}
+                        <span className="text-left font-mono text-sm tabular-nums text-neutral-500 dark:text-neutral-400">
+                          #{r.rank}
+                        </span>
+                        <span className="break-all text-left font-mono text-sm text-black dark:text-white">
+                          {r.username}
+                        </span>
+                        <span className="text-center font-mono text-sm font-bold tabular-nums text-black dark:text-white">
+                          {r.score}
+                        </span>
+                        <span className="text-right font-mono text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
+                          {formatSwissDate(r.created_at)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <>
+                  <header className={`${gridPerf} ${headerRowClass}`}>
+                    <span className="text-left">Rank</span>
+                    <span className="text-left">Username</span>
+                    <span className="text-center text-neutral-400 dark:text-neutral-500">
+                      Att
                     </span>
-                    <span className="text-right font-mono text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
-                      {formatSwissDate(r.created_at)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                    <span className="text-center">Score</span>
+                    <span className="text-right">Date</span>
+                  </header>
+                  <ul className="w-full" role="list">
+                    {rows.map((r, i) => (
+                      <li
+                        key={`${tab}-${r.created_at}-${r.username}-${r.score}-${i}`}
+                        className={`${gridPerf} ${dataRowClass}`}
+                      >
+                        <span className="text-left font-mono text-sm tabular-nums text-neutral-500 dark:text-neutral-400">
+                          #{r.rank}
+                        </span>
+                        <span className="break-all text-left font-mono text-sm text-black dark:text-white">
+                          {r.username}
+                        </span>
+                        <span className="text-center font-mono text-xs tabular-nums text-neutral-400 dark:text-neutral-500">
+                          {r.attempt_number != null ? `#${r.attempt_number}` : "—"}
+                        </span>
+                        <span className="text-center font-mono text-sm font-medium tabular-nums text-black dark:text-white">
+                          {r.score}
+                        </span>
+                        <span className="text-right font-mono text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
+                          {formatSwissDate(r.created_at)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
           )}
         </div>
