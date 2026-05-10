@@ -8,9 +8,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
-const axisMuted = "#a3a3a3";
-const lineColor = "#0a0a0a";
+import type { ChartThemeColors } from "@/hooks/use-chart-theme-colors";
+import { useChartThemeColors } from "@/hooks/use-chart-theme-colors";
 
 export type SessionTimingPoint = {
   question: string;
@@ -40,17 +39,30 @@ type TooltipPayloadRow = {
 interface TimingTooltipProps {
   active?: boolean;
   payload?: ReadonlyArray<{ payload: TooltipPayloadRow }>;
+  palette: ChartThemeColors;
 }
 
-function TimingTooltip({ active, payload }: TimingTooltipProps) {
+function TimingTooltip({ active, payload, palette }: TimingTooltipProps) {
   if (!active || !payload?.length) return null;
   const row = payload[0].payload;
   return (
-    <div className="border border-gray-200 bg-white px-3 py-2 rounded-sm text-left shadow-none">
-      <p className="text-xs font-semibold tracking-tight text-gray-950">
+    <div
+      className="px-3 py-2 rounded-sm text-left shadow-none"
+      style={{
+        border: `1px solid ${palette.tooltipBorder}`,
+        background: palette.tooltipBg,
+      }}
+    >
+      <p
+        className="text-xs font-semibold tracking-tight"
+        style={{ color: palette.tooltipFg }}
+      >
         {row.question}
       </p>
-      <p className="mt-1 font-mono text-[11px] tabular-nums text-gray-500">
+      <p
+        className="mt-1 font-mono text-[11px] tabular-nums"
+        style={{ color: palette.tooltipMuted }}
+      >
         {formatSeconds(row.timeTakenMs)}
       </p>
     </div>
@@ -70,9 +82,13 @@ export default function SessionTimeChart({
   height = 240,
   className,
 }: SessionTimeChartProps) {
+  const chart = useChartThemeColors();
+
   if (points.length === 0) {
     return (
-      <p className={`text-center text-sm text-gray-500 ${className ?? ""}`}>
+      <p
+        className={`text-center text-sm text-foreground/50 ${className ?? ""}`}
+      >
         No timed attempts in this session.
       </p>
     );
@@ -89,31 +105,39 @@ export default function SessionTimeChart({
         >
           <XAxis
             dataKey="ix"
-            tick={{ fontSize: 10, fill: axisMuted }}
+            tick={{ fontSize: 10, fill: chart.axis }}
             tickLine={false}
-            axisLine={{ stroke: axisMuted }}
+            axisLine={{ stroke: chart.axis }}
             interval={points.length <= 24 ? "preserveEnd" : 2}
           />
           <YAxis
             width={40}
             dataKey="secs"
-            tick={{ fontSize: 10, fill: axisMuted }}
+            tick={{ fontSize: 10, fill: chart.axis }}
             tickLine={false}
-            axisLine={{ stroke: axisMuted }}
+            axisLine={{ stroke: chart.axis }}
             tickFormatter={(v) => `${Number(v).toFixed(0)}s`}
             domain={["auto", "auto"]}
           />
           <Tooltip
-            content={<TimingTooltip />}
-            cursor={{ stroke: axisMuted, strokeWidth: 1 }}
+            content={(props) => (
+              <TimingTooltip
+                {...(props as Omit<TimingTooltipProps, "palette">)}
+                palette={chart}
+              />
+            )}
+            cursor={{
+              stroke: chart.cursorStroke,
+              strokeWidth: 1,
+            }}
           />
           <Line
             type="monotone"
             dataKey="secs"
-            stroke={lineColor}
+            stroke={chart.stroke}
             strokeWidth={1}
-            dot={{ fill: lineColor, strokeWidth: 0, r: 2.5 }}
-            activeDot={{ r: 4, fill: lineColor }}
+            dot={{ fill: chart.stroke, strokeWidth: 0, r: 2.5 }}
+            activeDot={{ r: 4, fill: chart.stroke }}
             isAnimationActive={false}
           />
         </LineChart>

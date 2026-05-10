@@ -11,9 +11,8 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
-const axisStroke = "#a3a3a3";
-const dataStroke = "#0a0a0a";
+import type { ChartThemeColors } from "@/hooks/use-chart-theme-colors";
+import { useChartThemeColors } from "@/hooks/use-chart-theme-colors";
 
 export interface LineDatum {
   at: string;
@@ -30,23 +29,40 @@ interface DashboardChartsProps {
   barData: BarDatum[];
 }
 
+function lineTooltipStyles(c: ChartThemeColors) {
+  return {
+    border: `1px solid ${c.tooltipBorder}`,
+    borderRadius: "2px",
+    fontSize: "12px",
+    background: c.tooltipBg,
+    color: c.tooltipFg,
+  };
+}
+
 export default function DashboardCharts({
   lineData,
   barData,
 }: DashboardChartsProps) {
+  const chart = useChartThemeColors();
+
   const barPrepared = barData.map((d) => ({
     ...d,
     avgMsDisplay: d.avgMs ?? 0,
   }));
 
+  const cardClass =
+    "border border-black/10 bg-background p-6 rounded-sm dark:border-white/15";
+
+  const mutedBody = "text-foreground/50";
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="border border-gray-200 bg-white p-6 rounded-sm">
-        <h2 className="text-xs font-medium tracking-widest uppercase text-gray-400">
+      <div className={cardClass}>
+        <h2 className="text-xs font-medium tracking-widest uppercase text-foreground/45">
           Score trend
         </h2>
         {lineData.length === 0 ? (
-          <p className="mt-8 py-16 text-center text-sm text-gray-500">
+          <p className={`mt-8 py-16 text-center text-sm ${mutedBody}`}>
             No sessions in this window yet.
           </p>
         ) : (
@@ -58,35 +74,29 @@ export default function DashboardCharts({
               >
                 <XAxis
                   dataKey="at"
-                  tick={{ fontSize: 10, fill: axisStroke }}
-                  tickLine={{ stroke: axisStroke }}
-                  axisLine={{ stroke: axisStroke }}
+                  tick={{ fontSize: 10, fill: chart.axis }}
+                  tickLine={{ stroke: chart.axis }}
+                  axisLine={{ stroke: chart.axis }}
                   interval="preserveStartEnd"
                 />
                 <YAxis
                   width={36}
-                  tick={{ fontSize: 10, fill: axisStroke }}
-                  tickLine={{ stroke: axisStroke }}
-                  axisLine={{ stroke: axisStroke }}
+                  tick={{ fontSize: 10, fill: chart.axis }}
+                  tickLine={{ stroke: chart.axis }}
+                  axisLine={{ stroke: chart.axis }}
                   allowDecimals={false}
                 />
                 <Tooltip
-                  cursor={{ stroke: axisStroke }}
-                  contentStyle={{
-                    border: "1px solid #e5e5e5",
-                    borderRadius: "2px",
-                    fontSize: "12px",
-                    background: "#fff",
-                    color: "#0a0a0a",
-                  }}
+                  cursor={{ stroke: chart.cursorStroke }}
+                  contentStyle={lineTooltipStyles(chart)}
                 />
                 <Line
                   type="monotone"
                   dataKey="score"
-                  stroke={dataStroke}
+                  stroke={chart.stroke}
                   strokeWidth={1.5}
-                  dot={{ fill: dataStroke, strokeWidth: 0, r: 3 }}
-                  activeDot={{ r: 4, fill: dataStroke }}
+                  dot={{ fill: chart.stroke, strokeWidth: 0, r: 3 }}
+                  activeDot={{ r: 4, fill: chart.stroke }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -94,12 +104,12 @@ export default function DashboardCharts({
         )}
       </div>
 
-      <div className="border border-gray-200 bg-white p-6 rounded-sm">
-        <h2 className="text-xs font-medium tracking-widest uppercase text-gray-400">
+      <div className={cardClass}>
+        <h2 className="text-xs font-medium tracking-widest uppercase text-foreground/45">
           Avg. time by operation
         </h2>
         {barPrepared.every((d) => d.avgMs === null) ? (
-          <p className="mt-8 py-16 text-center text-sm text-gray-500">
+          <p className={`mt-8 py-16 text-center text-sm ${mutedBody}`}>
             No breakdown data yet. Sessions need recorded attempts in raw
             data.
           </p>
@@ -112,32 +122,26 @@ export default function DashboardCharts({
               >
                 <XAxis
                   dataKey="operator"
-                  tick={{ fontSize: 10, fill: axisStroke }}
-                  tickLine={{ stroke: axisStroke }}
-                  axisLine={{ stroke: axisStroke }}
+                  tick={{ fontSize: 10, fill: chart.axis }}
+                  tickLine={{ stroke: chart.axis }}
+                  axisLine={{ stroke: chart.axis }}
                 />
                 <YAxis
                   width={40}
-                  tick={{ fontSize: 10, fill: axisStroke }}
-                  tickLine={{ stroke: axisStroke }}
-                  axisLine={{ stroke: axisStroke }}
+                  tick={{ fontSize: 10, fill: chart.axis }}
+                  tickLine={{ stroke: chart.axis }}
+                  axisLine={{ stroke: chart.axis }}
                   tickFormatter={(v) => `${v}`}
                   label={{
                     value: "ms",
                     angle: -90,
                     position: "insideLeft",
-                    style: { fill: axisStroke, fontSize: 10 },
+                    style: { fill: chart.axis, fontSize: 10 },
                   }}
                 />
                 <Tooltip
-                  cursor={{ fill: "#fafafa" }}
-                  contentStyle={{
-                    border: "1px solid #e5e5e5",
-                    borderRadius: "2px",
-                    fontSize: "12px",
-                    background: "#fff",
-                    color: "#0a0a0a",
-                  }}
+                  cursor={{ fill: chart.cursorFill }}
+                  contentStyle={lineTooltipStyles(chart)}
                   formatter={(_v, _n, item) => {
                     const ms = item?.payload?.avgMs as number | null | undefined;
                     return [
@@ -154,7 +158,7 @@ export default function DashboardCharts({
                   {barPrepared.map((entry, i) => (
                     <Cell
                       key={i}
-                      fill={entry.avgMs == null ? "#e5e5e5" : dataStroke}
+                      fill={entry.avgMs == null ? chart.barMuted : chart.stroke}
                     />
                   ))}
                 </Bar>

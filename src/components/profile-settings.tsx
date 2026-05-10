@@ -43,7 +43,7 @@ export default function ProfileSettings({
   }
 
   return (
-    <div className="border border-gray-200 bg-gray-50/50 px-5 py-6 rounded-sm">
+    <div className="border border-black/10 bg-foreground/[0.03] px-5 py-6 rounded-sm dark:border-white/15 dark:bg-white/[0.04]">
       <div className="flex items-start gap-4">
         <input
           id={toggleId}
@@ -51,13 +51,13 @@ export default function ProfileSettings({
           checked={isPublic}
           onChange={handleCheckboxChange}
           disabled={loading}
-          className="mt-1 h-[15px] w-[15px] shrink-0 cursor-pointer rounded-sm border border-gray-950 text-gray-950 accent-gray-950 focus:outline-none focus:ring-1 focus:ring-gray-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+          className="mt-1 h-[15px] w-[15px] shrink-0 cursor-pointer rounded-sm border border-foreground bg-background text-foreground accent-foreground focus:outline-none focus:ring-1 focus:ring-foreground focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-40"
           aria-describedby={`${toggleId}-desc`}
         />
         <div className="min-w-0 flex-1">
           <label
             htmlFor={toggleId}
-            className={`block text-xs font-medium tracking-widest uppercase text-gray-950 ${
+            className={`block text-xs font-medium tracking-widest uppercase text-foreground ${
               loading ? "" : "cursor-pointer"
             }`}
           >
@@ -65,7 +65,7 @@ export default function ProfileSettings({
           </label>
           <p
             id={`${toggleId}-desc`}
-            className="mt-2 text-xs leading-relaxed text-gray-500"
+            className="mt-2 text-xs leading-relaxed text-foreground/50"
           >
             If enabled, your scores and username will appear on the global
             leaderboard.

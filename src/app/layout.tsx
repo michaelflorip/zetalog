@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/header";
 import ProfileSync from "@/components/profile-sync";
+import ThemeProvider from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,11 +28,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
-        <Header />
-        <ProfileSync>{children}</ProfileSync>
+      <body className="min-h-full flex flex-col bg-background text-foreground font-sans antialiased">
+        <ThemeProvider>
+          <Header />
+          <ProfileSync>{children}</ProfileSync>
+        </ThemeProvider>
       </body>
     </html>
   );
