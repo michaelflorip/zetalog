@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import ProfileSettings from "@/components/profile-settings";
 import SettingsActions from "@/components/settings-actions";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,11 +15,12 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username")
+    .select("username, is_public")
     .eq("id", user.id)
     .maybeSingle();
 
   const username = profile?.username ?? "—";
+  const initialIsPublic = profile?.is_public ?? false;
 
   return (
     <div className="flex flex-1 flex-col bg-white font-sans">
@@ -44,6 +46,10 @@ export default async function SettingsPage() {
             <p className="mt-2 font-mono text-sm text-gray-950">{username}</p>
           </div>
         </section>
+
+        <div className="mt-14">
+          <ProfileSettings userId={user.id} initialIsPublic={initialIsPublic} />
+        </div>
 
         <SettingsActions />
       </main>

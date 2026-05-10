@@ -35,3 +35,31 @@ export function localCalendarDayUtcIsoRange(reference: Date = new Date()) {
   const end = new Date(y, m, d, 23, 59, 59, 999);
   return { startIso: start.toISOString(), endIso: end.toISOString() };
 }
+
+/**
+ * Local calendar month (viewer TZ): first ms of day 1 through last ms of last day.
+ */
+export function localCalendarMonthUtcIsoRange(reference: Date = new Date()) {
+  const y = reference.getFullYear();
+  const m = reference.getMonth();
+  const start = new Date(y, m, 1, 0, 0, 0, 0);
+  const end = new Date(y, m + 1, 0, 23, 59, 59, 999);
+  return { startIso: start.toISOString(), endIso: end.toISOString() };
+}
+
+/**
+ * Local calendar week (viewer TZ), Monday-start: Mon 00:00 through Sun 23:59:59.999.
+ */
+export function localCalendarWeekUtcIsoRange(reference: Date = new Date()) {
+  const d = new Date(reference);
+  const y = d.getFullYear();
+  const m = d.getMonth();
+  const dayOfMonth = d.getDate();
+  const dow = d.getDay();
+  const mondayDelta = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(y, m, dayOfMonth + mondayDelta, 0, 0, 0, 0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  sunday.setHours(23, 59, 59, 999);
+  return { startIso: monday.toISOString(), endIso: sunday.toISOString() };
+}

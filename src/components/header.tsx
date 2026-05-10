@@ -14,12 +14,18 @@ export default function Header() {
           ZETALOG
         </Link>
 
-        <nav className="flex items-center gap-8" aria-label="Primary">
+        <nav
+          className="flex flex-wrap items-center justify-end gap-x-6 gap-y-1 sm:gap-x-8"
+          aria-label="Primary"
+        >
           <Link href="/play" className={navClassName}>
             Play
           </Link>
           <Link href="/dashboard" className={navClassName}>
             Dashboard
+          </Link>
+          <Link href="/leaderboard" className={navClassName}>
+            Leaderboard
           </Link>
           <Link href="/settings" className={navClassName}>
             Settings
