@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useZetamacGame } from "@/hooks/use-zetamac-game";
 import { createClient } from "@/lib/supabase/client";
@@ -225,12 +226,21 @@ export default function PlayPage() {
             />
           </div>
 
-          <button
-            onClick={start}
-            className="px-10 py-3 text-sm font-medium tracking-widest uppercase bg-gray-950 text-white rounded-sm transition-colors hover:bg-gray-800"
-          >
-            Restart
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/dashboard"
+              className="inline-flex px-10 py-3 text-sm font-medium tracking-widest uppercase border border-gray-950 bg-white text-gray-950 rounded-sm transition-colors hover:bg-gray-50"
+            >
+              View Dashboard
+            </Link>
+            <button
+              onClick={start}
+              type="button"
+              className="px-10 py-3 text-sm font-medium tracking-widest uppercase bg-gray-950 text-white rounded-sm transition-colors hover:bg-gray-800"
+            >
+              Restart
+            </button>
+          </div>
         </div>
       </div>
     );

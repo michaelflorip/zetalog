@@ -1,39 +1,29 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
-import LogoutButton from "@/components/logout-button";
 
-export default async function Header() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+const navClassName =
+  "text-sm font-normal tracking-[0.2em] uppercase text-gray-950 hover:text-gray-500 transition-colors";
 
+export default function Header() {
   return (
     <header className="border-b border-gray-100 bg-white">
-      <div className="mx-auto flex h-12 max-w-4xl items-center justify-between px-6">
+      <div className="mx-auto flex h-14 max-w-4xl items-center justify-between px-6">
         <Link
           href="/"
-          className="text-sm font-semibold tracking-widest uppercase text-gray-950"
+          className="text-sm font-normal tracking-[0.2em] uppercase text-gray-950"
         >
-          Zetalog
+          ZETALOG
         </Link>
 
-        <nav className="flex items-center gap-6">
-          {user ? (
-            <>
-              <span className="text-sm text-gray-400 font-mono truncate max-w-[200px]">
-                {user.email}
-              </span>
-              <LogoutButton />
-            </>
-          ) : (
-            <Link
-              href="/login"
-              className="text-sm font-medium text-gray-500 hover:text-gray-950 transition-colors"
-            >
-              Login
-            </Link>
-          )}
+        <nav className="flex items-center gap-8" aria-label="Primary">
+          <Link href="/play" className={navClassName}>
+            Play
+          </Link>
+          <Link href="/dashboard" className={navClassName}>
+            Dashboard
+          </Link>
+          <Link href="/settings" className={navClassName}>
+            Settings
+          </Link>
         </nav>
       </div>
     </header>
