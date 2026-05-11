@@ -33,6 +33,49 @@ function sessionSaveStorageKey(historyTailTs: number, scoreVal: number) {
   return `zetavant_session_saved_${historyTailTs}_${scoreVal}`;
 }
 
+const TECH_SPECS = [
+  { label: "ADDITION", value: "2–100 + 2–100" },
+  { label: "SUBTRACTION", value: "Inverted Addition" },
+  { label: "MULTIPLICATION", value: "2–12 × 2–100" },
+  { label: "DIVISION", value: "Inverted Multiplication" },
+] as const;
+
+const SPEC_RULE =
+  "border-neutral-200/45 dark:border-white/[0.07]";
+
+function TechnicalSpecifications() {
+  return (
+    <section
+      className="w-full max-w-xs sm:max-w-sm"
+      aria-labelledby="play-tech-specs-heading"
+    >
+      <h2
+        id="play-tech-specs-heading"
+        className="mb-2 text-center font-mono text-[10px] tracking-widest text-neutral-400 dark:text-neutral-500"
+      >
+        TECHNICAL SPECIFICATIONS
+      </h2>
+      <div
+        className={`overflow-hidden rounded-sm border ${SPEC_RULE} divide-y divide-neutral-200/40 dark:divide-white/[0.06]`}
+      >
+        {TECH_SPECS.map((row) => (
+          <div
+            key={row.label}
+            className={`grid grid-cols-2 divide-x divide-neutral-200/40 font-mono text-[10px] tracking-widest dark:divide-white/[0.06]`}
+          >
+            <div className="px-2.5 py-1.5 text-neutral-400 dark:text-neutral-400">
+              {row.label}
+            </div>
+            <div className="px-2.5 py-1.5 text-right text-neutral-600 dark:text-white">
+              {row.value}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function PlayPage() {
   const {
     status,
@@ -209,22 +252,21 @@ export default function PlayPage() {
   if (status === "idle") {
     return (
       <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center bg-white px-4 font-sans transition-colors duration-300 dark:bg-black">
-        <div className="flex w-full flex-col items-center justify-center gap-6 sm:gap-8">
+        <div className="flex w-full flex-col items-center justify-center gap-5 sm:gap-7">
           <h1 className="text-center text-4xl font-semibold tracking-tight text-black transition-colors duration-300 sm:text-5xl dark:text-white">
             Zetavant
           </h1>
           <p className="max-w-[280px] text-center text-sm leading-relaxed tracking-wide text-neutral-500 sm:text-base dark:text-neutral-400">
             Two minutes. Sharpen speed and accuracy under pressure.
           </p>
-          <div
-            className="mt-2 flex w-full flex-col items-center gap-4 pb-[max(2rem,env(safe-area-inset-bottom,0px))]"
-          >
+          <div className="mt-1 flex w-full max-w-md flex-col items-center gap-3 pb-[max(2rem,env(safe-area-inset-bottom,0px))]">
             <button onClick={start} type="button" className={PRIMARY_BTN_PLAY}>
               Start
             </button>
-            <p className="max-w-md text-center text-[10px] tracking-widest text-neutral-400 dark:text-neutral-500">
+            <p className="text-center text-[10px] tracking-widest text-neutral-400 dark:text-neutral-500">
               2:00 MIN • [+ , − , × , ÷] • ALL INTEGERS
             </p>
+            <TechnicalSpecifications />
           </div>
         </div>
       </div>
