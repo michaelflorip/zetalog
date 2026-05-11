@@ -33,7 +33,7 @@ export default function Header() {
 
   return (
     <header className="border-b border-gray-200 bg-white transition-colors duration-300 dark:border-gray-800 dark:bg-black">
-      <div className="mx-auto flex h-14 max-w-4xl items-baseline justify-between gap-3 px-4 sm:px-6">
+      <div className="mx-auto flex max-w-4xl items-baseline justify-between gap-3 px-4 pb-6 pt-[max(1.5rem,env(safe-area-inset-top,0px))] sm:px-6 md:pb-10 md:pt-10">
         <Link href="/" className={wordmarkClassName}>
           ZETAVANT
         </Link>
@@ -66,7 +66,7 @@ export default function Header() {
           className="border-t border-gray-200 md:hidden dark:border-gray-800"
           aria-label="Primary mobile"
         >
-          <div className="mx-auto max-w-4xl px-4 sm:px-6">
+          <div className="mx-auto max-w-4xl px-4 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] sm:px-6">
             {navItems.map(({ href, label }) => (
               <Link
                 key={href}

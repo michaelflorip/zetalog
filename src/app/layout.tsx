@@ -55,10 +55,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full min-h-dvh`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-white text-black transition-colors duration-300 dark:bg-black dark:text-white font-sans antialiased">
+      <body className="flex min-h-dvh min-h-full flex-col bg-white text-black transition-colors duration-300 dark:bg-black dark:text-white font-sans antialiased">
         <ThemeProvider>
           <Header />
           <ProfileSync>{children}</ProfileSync>

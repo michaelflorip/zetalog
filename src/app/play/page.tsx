@@ -208,7 +208,7 @@ export default function PlayPage() {
 
   if (status === "idle") {
     return (
-      <div className="flex min-h-[calc(100dvh-3.5rem)] w-full flex-col items-center justify-center bg-white px-4 font-sans transition-colors duration-300 dark:bg-black">
+      <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center bg-white px-4 font-sans transition-colors duration-300 dark:bg-black">
         <div className="flex w-full flex-col items-center justify-center gap-6 sm:gap-8">
           <h1 className="text-center text-4xl font-semibold tracking-tight text-black transition-colors duration-300 sm:text-5xl dark:text-white">
             Zetavant
@@ -233,7 +233,7 @@ export default function PlayPage() {
 
   if (status === "finished") {
     return (
-      <div className="flex min-h-screen flex-col items-center bg-white px-6 py-12 font-sans transition-colors duration-300 dark:bg-black">
+      <div className="flex min-h-0 w-full flex-1 flex-col items-center bg-white px-6 py-12 font-sans transition-colors duration-300 dark:bg-black">
         <div className="flex w-full max-w-2xl flex-col items-center gap-8">
           <div className="flex flex-col items-center gap-6">
             <p className={LABEL_MUTED}>Game Over</p>
@@ -271,7 +271,7 @@ export default function PlayPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-white font-sans select-none transition-colors duration-300 dark:bg-black">
+    <div className="relative flex min-h-0 w-full flex-1 flex-col bg-white font-sans select-none transition-colors duration-300 dark:bg-black">
       <div className="fixed left-0 right-0 top-0 h-1 bg-neutral-200 transition-colors duration-300 dark:bg-neutral-800">
         <div
           className="h-full bg-black transition-[width] duration-1000 ease-linear dark:bg-white"
