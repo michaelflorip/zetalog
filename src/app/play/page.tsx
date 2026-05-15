@@ -1,11 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { SandboxConfig } from "@/components/sandbox-config";
+import { SandboxConfigSummaryLines } from "@/components/sandbox-config-summary";
 import SessionDetailPanel from "@/components/session-detail-panel";
-import { useZetamacGame } from "@/hooks/use-zetamac-game";
+import { useSandboxMode } from "@/hooks/use-sandbox-mode";
+import {
+  DEFAULT_CONFIG,
+  useZetamacGame,
+  type GameConfig,
+} from "@/hooks/use-zetamac-game";
 import { localCalendarDayUtcIsoRange } from "@/lib/datetime";
 import { createClient } from "@/lib/supabase/client";
+import {
+  buildSandboxSettingsPayload,
+  computeAccuracy,
+  formatSandboxConfigSummary,
+} from "@/lib/session-settings";
 
 const GAME_DURATION_S = 120;
 const SESSION_SOURCE = "zetavant";
@@ -19,6 +31,16 @@ const OUTLINE_BTN_PLAY =
 const LABEL_MUTED =
   "text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500";
 
+const SANDBOX_STATUS_LABEL =
+  "font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500";
+
+/** Document-flow sandbox banner (py-2 + one line) — extra top space on /play only. */
+const PLAY_SANDBOX_TOP_PADDING = "pt-8";
+
+function playPageShellClass(isSandbox: boolean, base: string) {
+  return [base, isSandbox ? PLAY_SANDBOX_TOP_PADDING : ""].filter(Boolean).join(" ");
+}
+
 const INPUT_UNDERLINE_PLAY =
   "w-full bg-transparent pb-2 text-center text-4xl font-semibold tracking-tight font-mono tabular-nums outline-none placeholder:text-neutral-400 dark:text-white dark:placeholder:text-neutral-500 transition-colors duration-300 border-b-2 border-neutral-400 focus:border-black dark:border-white/35 dark:focus:border-white text-black";
 
@@ -29,8 +51,12 @@ function formatTime(seconds: number): string {
 }
 
 /** Dedupe Strict Mode dev double-invoke across remount (same logical game end). */
-function sessionSaveStorageKey(historyTailTs: number, scoreVal: number) {
+function rankedSessionSaveStorageKey(historyTailTs: number, scoreVal: number) {
   return `zetavant_session_saved_${historyTailTs}_${scoreVal}`;
+}
+
+function sandboxSessionSaveStorageKey(historyTailTs: number, scoreVal: number) {
+  return `zetavant_sandbox_saved_${historyTailTs}_${scoreVal}`;
 }
 
 const TECH_SPECS = [
@@ -47,14 +73,8 @@ function TechnicalSpecifications() {
   return (
     <section
       className="w-full max-w-xs sm:max-w-sm"
-      aria-labelledby="play-tech-specs-heading"
+      aria-label="Operator specifications"
     >
-      <h2
-        id="play-tech-specs-heading"
-        className="mb-2 text-center font-mono text-[10px] tracking-widest text-neutral-400 dark:text-neutral-500"
-      >
-        TECHNICAL SPECIFICATIONS
-      </h2>
       <div
         className={`overflow-hidden rounded-sm border ${SPEC_RULE} divide-y divide-neutral-200/40 dark:divide-white/[0.06]`}
       >
@@ -77,6 +97,14 @@ function TechnicalSpecifications() {
 }
 
 export default function PlayPage() {
+  const { isSandbox } = useSandboxMode();
+  const [sandboxConfig, setSandboxConfig] =
+    useState<GameConfig>(DEFAULT_CONFIG);
+  const gameConfig = useMemo(
+    () => (isSandbox ? sandboxConfig : DEFAULT_CONFIG),
+    [isSandbox, sandboxConfig],
+  );
+
   const {
     status,
     timeLeft,
@@ -85,28 +113,30 @@ export default function PlayPage() {
     currentProblem,
     start,
     submitAnswer,
-  } = useZetamacGame();
+  } = useZetamacGame(gameConfig);
 
   const [input, setInput] = useState("");
   const [todayAttemptNumber, setTodayAttemptNumber] = useState<number | null>(
     null,
   );
   const inputRef = useRef<HTMLInputElement>(null);
-  const saveAttemptedRef = useRef(false);
+  const rankedSaveAttemptedRef = useRef(false);
+  const sandboxSaveAttemptedRef = useRef(false);
 
   useEffect(() => {
     if (status === "playing") {
-      saveAttemptedRef.current = false;
+      rankedSaveAttemptedRef.current = false;
+      sandboxSaveAttemptedRef.current = false;
       setTodayAttemptNumber(null);
     }
   }, [status]);
 
   useEffect(() => {
-    if (status !== "finished") return;
+    if (status !== "finished" || isSandbox) return;
 
     async function saveSession() {
       const lastTs = history[history.length - 1]?.timestamp ?? 0;
-      const dedupeKey = sessionSaveStorageKey(lastTs, score);
+      const dedupeKey = rankedSessionSaveStorageKey(lastTs, score);
       if (typeof window !== "undefined") {
         if (window.sessionStorage.getItem(dedupeKey)) {
           console.log("[Play] Session save skipped (already persisted this round).");
@@ -114,8 +144,8 @@ export default function PlayPage() {
         }
       }
 
-      if (saveAttemptedRef.current) return;
-      saveAttemptedRef.current = true;
+      if (rankedSaveAttemptedRef.current) return;
+      rankedSaveAttemptedRef.current = true;
 
       const supabase = createClient();
 
@@ -127,7 +157,7 @@ export default function PlayPage() {
       if (userError) {
         console.error("[Play] auth.getUser() error:");
         console.dir(userError, { depth: null });
-        saveAttemptedRef.current = false;
+        rankedSaveAttemptedRef.current = false;
         return;
       }
 
@@ -155,7 +185,7 @@ export default function PlayPage() {
 
       if (!user) {
         console.warn("[Play] No user session — skipping session insert.");
-        saveAttemptedRef.current = false;
+        rankedSaveAttemptedRef.current = false;
         return;
       }
 
@@ -170,19 +200,14 @@ export default function PlayPage() {
       if (countError) {
         console.error("[Play] sessions count error (today local) — RLS may block SELECT on sessions:");
         console.dir(countError, { depth: null });
-        saveAttemptedRef.current = false;
+        rankedSaveAttemptedRef.current = false;
         return;
       }
 
       const attempt_number = (todayCount ?? 0) + 1;
       setTodayAttemptNumber(attempt_number);
 
-      const totalAttempts = history.length;
-      const correctAttempts = history.filter((e) => e.isCorrect).length;
-      const accuracy =
-        totalAttempts === 0
-          ? 0
-          : Number(((correctAttempts / totalAttempts) * 100).toFixed(2));
+      const accuracy = computeAccuracy(history);
 
       const row = {
         user_id: user.id,
@@ -192,6 +217,7 @@ export default function PlayPage() {
         attempt_number,
         source: SESSION_SOURCE,
         raw_data: { history },
+        settings: { mode: "default" },
       };
 
       console.log("[Play] Attempting to save session...", row);
@@ -214,7 +240,7 @@ export default function PlayPage() {
           console.error("[Play] sessions insert failed (code / details / hint):");
           console.dir(insertError, { depth: null });
           setTodayAttemptNumber(null);
-          saveAttemptedRef.current = false;
+          rankedSaveAttemptedRef.current = false;
           return;
         }
 
@@ -226,12 +252,117 @@ export default function PlayPage() {
         console.error("[Play] sessions insert threw (unexpected):");
         console.dir(err, { depth: null });
         setTodayAttemptNumber(null);
-        saveAttemptedRef.current = false;
+        rankedSaveAttemptedRef.current = false;
       }
     }
 
     void saveSession();
-  }, [status, score, history]);
+  }, [status, score, history, isSandbox]);
+
+  useEffect(() => {
+    if (status !== "finished" || !isSandbox) return;
+
+    async function saveSandboxSession() {
+      const lastTs = history[history.length - 1]?.timestamp ?? 0;
+      const dedupeKey = sandboxSessionSaveStorageKey(lastTs, score);
+      if (typeof window !== "undefined") {
+        if (window.sessionStorage.getItem(dedupeKey)) {
+          console.log(
+            "[Play] Sandbox session save skipped (already persisted this round).",
+          );
+          return;
+        }
+      }
+
+      if (sandboxSaveAttemptedRef.current) return;
+      sandboxSaveAttemptedRef.current = true;
+
+      const supabase = createClient();
+
+      const {
+        data: { user: userFromGetUser },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        console.error("[Play] auth.getUser() error:");
+        console.dir(userError, { depth: null });
+        sandboxSaveAttemptedRef.current = false;
+        return;
+      }
+
+      let user = userFromGetUser;
+
+      if (!user) {
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
+        if (sessionError) {
+          console.error("[Play] auth.getSession() error:");
+          console.dir(sessionError, { depth: null });
+        }
+
+        user = session?.user ?? null;
+
+        if (user) {
+          console.warn(
+            "[Play] getUser() had no user; using session.user for insert (check JWT / cookie sync).",
+          );
+        }
+      }
+
+      if (!user) {
+        console.warn("[Play] No user session — skipping sandbox session insert.");
+        sandboxSaveAttemptedRef.current = false;
+        return;
+      }
+
+      const accuracy = computeAccuracy(history);
+      const settings = buildSandboxSettingsPayload(gameConfig);
+
+      const row = {
+        user_id: user.id,
+        score,
+        accuracy,
+        duration_seconds: gameConfig.duration,
+        attempt_number: null,
+        source: "sandbox",
+        raw_data: { history },
+        settings,
+      };
+
+      console.log("[Play] Attempting to save sandbox session...", row);
+
+      try {
+        const { data: insertRows, error: insertError } = await supabase
+          .from("sessions")
+          .insert(row)
+          .select();
+
+        if (insertError) {
+          console.error(
+            "[Play] sandbox sessions insert failed (code / details / hint):",
+          );
+          console.dir(insertError, { depth: null });
+          sandboxSaveAttemptedRef.current = false;
+          return;
+        }
+
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem(dedupeKey, "1");
+        }
+        console.log("[Play] Sandbox session saved successfully.", insertRows);
+      } catch (err) {
+        console.error("[Play] sandbox sessions insert threw (unexpected):");
+        console.dir(err, { depth: null });
+        sandboxSaveAttemptedRef.current = false;
+      }
+    }
+
+    void saveSandboxSession();
+  }, [status, score, history, isSandbox, gameConfig]);
 
   useEffect(() => {
     if (status !== "playing" || input === "") return;
@@ -247,27 +378,64 @@ export default function PlayPage() {
     }
   }, [status, currentProblem]);
 
-  const progress = timeLeft / GAME_DURATION_S;
+  const progress =
+    gameConfig.duration > 0 ? timeLeft / gameConfig.duration : 0;
 
   if (status === "idle") {
     return (
-      <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center bg-white px-4 font-sans transition-colors duration-300 dark:bg-black">
+      <div
+        className={playPageShellClass(
+          isSandbox,
+          "flex min-h-0 w-full flex-1 flex-col items-center justify-center bg-white px-4 font-sans transition-colors duration-300 dark:bg-black",
+        )}
+      >
         <div className="flex w-full flex-col items-center justify-center gap-5 sm:gap-7">
           <h1 className="text-center text-4xl font-semibold tracking-tight text-black transition-colors duration-300 sm:text-5xl dark:text-white">
             Zetavant
           </h1>
-          <p className="max-w-[280px] text-center text-sm leading-relaxed tracking-wide text-neutral-500 sm:text-base dark:text-neutral-400">
-            Two minutes. Sharpen speed and accuracy under pressure.
-          </p>
-          <div className="mt-1 flex w-full max-w-md flex-col items-center gap-3 pb-[max(2rem,env(safe-area-inset-bottom,0px))]">
-            <button onClick={start} type="button" className={PRIMARY_BTN_PLAY}>
-              Start
-            </button>
-            <p className="text-center text-[10px] tracking-widest text-neutral-400 dark:text-neutral-500">
-              2:00 MIN • [+ , − , × , ÷] • ALL INTEGERS
-            </p>
-            <TechnicalSpecifications />
-          </div>
+          {isSandbox ? (
+            <>
+              <p className="max-w-[280px] text-center text-sm leading-relaxed tracking-wide text-neutral-500 sm:text-base dark:text-neutral-400">
+                Sharpen speed and accuracy under pressure.
+              </p>
+              <div className="flex w-full max-w-md flex-col items-center pb-[max(2rem,env(safe-area-inset-bottom,0px))]">
+                <SandboxConfig
+                  config={sandboxConfig}
+                  onChange={setSandboxConfig}
+                />
+                <button
+                  onClick={start}
+                  type="button"
+                  className={`mt-10 ${PRIMARY_BTN_PLAY}`}
+                >
+                  Start
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="flex w-full max-w-md flex-col items-center pb-[max(2rem,env(safe-area-inset-bottom,0px))]">
+              <p className="mb-10 max-w-[280px] text-center text-sm leading-relaxed tracking-wide text-neutral-500 sm:text-base dark:text-neutral-400">
+                Two minutes. Sharpen speed and accuracy under pressure.
+              </p>
+              <button onClick={start} type="button" className={PRIMARY_BTN_PLAY}>
+                Start
+              </button>
+              <p className="mt-10 text-center text-[10px] tracking-widest text-neutral-400 dark:text-neutral-500">
+                2:00 MIN • [+ , − , × , ÷] • ALL INTEGERS
+              </p>
+              <TechnicalSpecifications />
+              <p className="mt-8 text-center text-xs text-neutral-400 dark:text-neutral-500">
+                Want custom practice? Enable Sandbox Mode in{" "}
+                <Link
+                  href="/settings"
+                  className="text-neutral-400 underline underline-offset-2 transition-colors duration-200 hover:text-black dark:text-neutral-500 dark:hover:text-white"
+                >
+                  Settings
+                </Link>
+                .
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -275,7 +443,12 @@ export default function PlayPage() {
 
   if (status === "finished") {
     return (
-      <div className="flex min-h-0 w-full flex-1 flex-col items-center bg-white px-6 py-12 font-sans transition-colors duration-300 dark:bg-black">
+      <div
+        className={playPageShellClass(
+          isSandbox,
+          "flex min-h-0 w-full flex-1 flex-col items-center bg-white px-6 py-12 font-sans transition-colors duration-300 dark:bg-black",
+        )}
+      >
         <div className="flex w-full max-w-2xl flex-col items-center gap-8">
           <div className="flex flex-col items-center gap-6">
             <p className={LABEL_MUTED}>Game Over</p>
@@ -285,16 +458,28 @@ export default function PlayPage() {
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
               problems solved in 2 minutes
             </p>
-            {todayAttemptNumber != null && (
-              <p className="text-center text-sm font-medium tracking-tight text-black transition-colors duration-300 dark:text-white">
-                Session Complete — Attempt #{todayAttemptNumber} today
-              </p>
+            {isSandbox ? (
+              <div className="flex flex-col items-center gap-2 text-center">
+                <p className={SANDBOX_STATUS_LABEL}>SANDBOX — NOT RANKED</p>
+                <SandboxConfigSummaryLines
+                  summary={formatSandboxConfigSummary(gameConfig)}
+                />
+              </div>
+            ) : (
+              todayAttemptNumber != null && (
+                <p className="text-center text-sm font-medium tracking-tight text-black transition-colors duration-300 dark:text-white">
+                  Session Complete — Attempt #{todayAttemptNumber} today
+                </p>
+              )
             )}
           </div>
 
           <div className="w-full rounded-sm border border-gray-200 bg-white px-5 py-6 transition-colors duration-300 dark:border-gray-800 dark:bg-black">
             <SessionDetailPanel
               rawData={{ history }}
+              settings={
+                isSandbox ? buildSandboxSettingsPayload(gameConfig) : undefined
+              }
               chartHeight={260}
             />
           </div>
@@ -313,7 +498,12 @@ export default function PlayPage() {
   }
 
   return (
-    <div className="relative flex min-h-0 w-full flex-1 flex-col bg-white font-sans select-none transition-colors duration-300 dark:bg-black">
+    <div
+      className={playPageShellClass(
+        isSandbox,
+        "relative flex min-h-0 w-full flex-1 flex-col bg-white font-sans select-none transition-colors duration-300 dark:bg-black",
+      )}
+    >
       <div className="fixed left-0 right-0 top-0 h-1 bg-neutral-200 transition-colors duration-300 dark:bg-neutral-800">
         <div
           className="h-full bg-black transition-[width] duration-1000 ease-linear dark:bg-white"

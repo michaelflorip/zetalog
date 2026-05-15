@@ -30,16 +30,11 @@ function buildChartData(points: SessionTimingPoint[]) {
   }));
 }
 
-/** X-axis labels at 1, every 10th question, and always the last (total count). */
-function questionAxisTicks(totalQuestions: number): string[] {
-  if (totalQuestions <= 0) return [];
-  const set = new Set<string>();
-  set.add("1");
-  for (let q = 10; q <= totalQuestions; q += 10) {
-    set.add(String(q));
-  }
-  set.add(String(totalQuestions));
-  return Array.from(set).sort((a, b) => Number(a) - Number(b));
+/** Evenly distributed tick spacing for Recharts XAxis `interval`. */
+function questionAxisInterval(dataPointCount: number): number {
+  if (dataPointCount <= 0) return 1;
+  const tickCount = Math.min(dataPointCount, 10);
+  return Math.max(1, Math.floor(dataPointCount / tickCount));
 }
 
 function QuestionNumberTick({
@@ -140,7 +135,7 @@ export default function SessionTimeChart({
   }
 
   const data = buildChartData(points);
-  const xTicks = questionAxisTicks(points.length);
+  const xAxisInterval = questionAxisInterval(points.length);
 
   const dotR = narrow ? 4 : 2.5;
   const activeDotR = narrow ? 7 : 4;
@@ -158,7 +153,7 @@ export default function SessionTimeChart({
           <XAxis
             dataKey="ix"
             type="category"
-            ticks={xTicks}
+            interval={xAxisInterval}
             tick={<QuestionNumberTick />}
             tickLine={false}
             axisLine={{ stroke: chart.axis }}

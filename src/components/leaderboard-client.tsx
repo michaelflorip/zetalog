@@ -33,8 +33,7 @@ const HOF_EMPTY =
 
 const PAGE_SIZE = 1000;
 
-/** App-originated sessions (includes legacy `zetalog` source). */
-const LEADERBOARD_SESSION_SOURCES = ["zetavant", "zetalog"] as const;
+const LEADERBOARD_SESSION_SOURCE = "zetavant";
 
 function tabButtonClass(active: boolean) {
   return [
@@ -59,7 +58,7 @@ async function fetchAllSessionsForUsers(
       .from("sessions")
       .select("score, created_at, user_id, attempt_number, raw_data")
       .in("user_id", userIds)
-      .in("source", [...LEADERBOARD_SESSION_SOURCES])
+      .eq("source", LEADERBOARD_SESSION_SOURCE)
       .range(from, from + PAGE_SIZE - 1);
 
     if (error) throw error;
@@ -204,7 +203,7 @@ export default function LeaderboardClient() {
         .from("sessions")
         .select("score, created_at, user_id, attempt_number, raw_data")
         .in("user_id", userIds)
-        .in("source", [...LEADERBOARD_SESSION_SOURCES])
+        .eq("source", LEADERBOARD_SESSION_SOURCE)
         .order("score", { ascending: false })
         .limit(50);
 
@@ -276,6 +275,10 @@ export default function LeaderboardClient() {
         <p className="mt-4 max-w-lg text-sm leading-relaxed text-neutral-500 transition-colors duration-300 dark:text-neutral-400">
           Rankings from players who have chosen to share results on the public
           Hall of Fame.
+        </p>
+        <p className="mt-2 max-w-lg text-sm leading-relaxed text-neutral-500 transition-colors duration-300 dark:text-neutral-400">
+          Only standard 2-minute sessions are eligible. Sandbox sessions are
+          excluded.
         </p>
 
         <div className="mt-16 flex flex-wrap gap-x-8 gap-y-2 border-b border-gray-200 pb-px transition-colors duration-300 dark:border-gray-800 sm:gap-x-10">

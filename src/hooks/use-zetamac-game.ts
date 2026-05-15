@@ -2,7 +2,27 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-type Operation = "+" | "−" | "×" | "÷";
+export type Operator = "+" | "-" | "×" | "÷";
+
+export interface GameConfig {
+  duration: number;
+  operators: Operator[];
+  ranges: {
+    addition: { min1: number; max1: number; min2: number; max2: number };
+    multiplication: { min1: number; max1: number; min2: number; max2: number };
+  };
+}
+
+export const DEFAULT_CONFIG: GameConfig = {
+  duration: 120,
+  operators: ["+", "-", "×", "÷"],
+  ranges: {
+    addition: { min1: 2, max1: 100, min2: 2, max2: 100 },
+    multiplication: { min1: 2, max1: 12, min2: 2, max2: 100 },
+  },
+};
+
+const ALL_OPERATORS: Operator[] = ["+", "-", "×", "÷"];
 
 interface HistoryEvent {
   question: string;
@@ -20,52 +40,54 @@ interface Problem {
 
 type GameStatus = "idle" | "playing" | "finished";
 
-const GAME_DURATION_S = 120;
-
 function randInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function generateProblem(): Problem {
-  const ops: Operation[] = ["+", "−", "×", "÷"];
-  const op = ops[Math.floor(Math.random() * ops.length)];
+function resolveOperators(config: GameConfig): Operator[] {
+  return config.operators.length > 0 ? config.operators : ALL_OPERATORS;
+}
 
-  let a: number;
-  let b: number;
+export function generateProblem(config: GameConfig): Problem {
+  const ops = resolveOperators(config);
+  const op = ops[Math.floor(Math.random() * ops.length)]!;
+  const add = config.ranges.addition;
+  const mul = config.ranges.multiplication;
 
   switch (op) {
     case "+": {
-      a = randInt(2, 100);
-      b = randInt(2, 100);
+      const a = randInt(add.min1, add.max1);
+      const b = randInt(add.min2, add.max2);
       return { question: `${a} + ${b}`, answer: a + b };
     }
-    case "−": {
-      // Reverse of addition: pick two addends, show their sum minus one
-      a = randInt(2, 100);
-      b = randInt(2, 100);
+    case "-": {
+      const a = randInt(add.min1, add.max1);
+      const b = randInt(add.min2, add.max2);
       return { question: `${a + b} − ${a}`, answer: b };
     }
     case "×": {
-      a = randInt(2, 12);
-      b = randInt(2, 100);
+      const a = randInt(mul.min1, mul.max1);
+      const b = randInt(mul.min2, mul.max2);
       return { question: `${a} × ${b}`, answer: a * b };
     }
     case "÷": {
-      // Reverse of multiplication: divisor 2-12, result 2-100
-      a = randInt(2, 12);
-      b = randInt(2, 100);
+      const a = randInt(mul.min1, mul.max1);
+      const b = randInt(mul.min2, mul.max2);
       return { question: `${a * b} ÷ ${a}`, answer: b };
     }
   }
 }
 
-export function useZetamacGame() {
+export function useZetamacGame(config: GameConfig = DEFAULT_CONFIG) {
+  const configRef = useRef(config);
+  configRef.current = config;
+
   const [status, setStatus] = useState<GameStatus>("idle");
-  const [timeLeft, setTimeLeft] = useState(GAME_DURATION_S);
+  const [timeLeft, setTimeLeft] = useState(config.duration);
   const [score, setScore] = useState(0);
   const [history, setHistory] = useState<HistoryEvent[]>([]);
-  const [currentProblem, setCurrentProblem] = useState<Problem>(
-    generateProblem,
+  const [currentProblem, setCurrentProblem] = useState<Problem>(() =>
+    generateProblem(config),
   );
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -99,26 +121,35 @@ export function useZetamacGame() {
     return clearTimer;
   }, [clearTimer]);
 
+  useEffect(() => {
+    if (status !== "idle") return;
+    const cfg = configRef.current;
+    setTimeLeft(cfg.duration);
+    setCurrentProblem(generateProblem(cfg));
+  }, [config, status]);
+
   const start = useCallback(() => {
+    const cfg = configRef.current;
     clearTimer();
     timerStartedRef.current = false;
     setStatus("playing");
-    setTimeLeft(GAME_DURATION_S);
+    setTimeLeft(cfg.duration);
     setScore(0);
     setHistory([]);
-    const p = generateProblem();
+    const p = generateProblem(cfg);
     setCurrentProblem(p);
     problemStartRef.current = Date.now();
   }, [clearTimer]);
 
   const reset = useCallback(() => {
+    const cfg = configRef.current;
     clearTimer();
     timerStartedRef.current = false;
     setStatus("idle");
-    setTimeLeft(GAME_DURATION_S);
+    setTimeLeft(cfg.duration);
     setScore(0);
     setHistory([]);
-    setCurrentProblem(generateProblem());
+    setCurrentProblem(generateProblem(cfg));
     problemStartRef.current = Date.now();
   }, [clearTimer]);
 
@@ -149,7 +180,7 @@ export function useZetamacGame() {
       setHistory((prev) => [...prev, event]);
       if (isCorrect) setScore((prev) => prev + 1);
 
-      const next = generateProblem();
+      const next = generateProblem(configRef.current);
       setCurrentProblem(next);
       problemStartRef.current = Date.now();
     },

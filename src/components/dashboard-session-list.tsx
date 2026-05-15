@@ -9,16 +9,23 @@ export interface DashboardSessionRow {
   created_at: string;
   score: number;
   attempt_number: number | null;
+  source: string | null;
+  settings: unknown;
   raw_data: unknown;
 }
+
+const SANDBOX_TAG_CLASS =
+  "font-mono text-[10px] uppercase tracking-[0.2em] px-1.5 py-0.5 border border-neutral-300 text-neutral-400 dark:border-neutral-700 dark:text-neutral-500";
 
 const labelMutedClass =
   "font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500";
 
 export default function DashboardSessionList({
   sessions,
+  listSubtitle,
 }: {
   sessions: DashboardSessionRow[];
+  listSubtitle?: string;
 }) {
   if (sessions.length === 0) {
     return null;
@@ -29,7 +36,7 @@ export default function DashboardSessionList({
       <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-800">
         <h2 className={labelMutedClass}>Recent sessions</h2>
         <p className="mt-1 font-mono text-[10px] text-neutral-400 dark:text-neutral-500">
-          Last {sessions.length} games
+          {listSubtitle ?? `Last ${sessions.length} games`}
         </p>
       </div>
       <ul className="divide-y divide-gray-200 dark:divide-gray-800">
@@ -43,6 +50,7 @@ export default function DashboardSessionList({
 
 function SessionListItem({ session }: { session: DashboardSessionRow }) {
   const [open, setOpen] = useState(false);
+  const isSandbox = session.source === "sandbox";
 
   return (
     <li className="px-4 py-4 transition-colors duration-300">
@@ -57,14 +65,23 @@ function SessionListItem({ session }: { session: DashboardSessionRow }) {
           <div className="min-w-[72px]">
             <p className={labelMutedClass}>Attempt</p>
             <p className="mt-1 font-mono text-xs tabular-nums text-black dark:text-white">
-              {session.attempt_number != null ? `#${session.attempt_number}` : "—"}
+              {isSandbox
+                ? "—"
+                : session.attempt_number != null
+                  ? `#${session.attempt_number}`
+                  : "—"}
             </p>
           </div>
           <div className="min-w-[72px]">
             <p className={labelMutedClass}>Score</p>
-            <p className="mt-1 text-sm font-semibold tabular-nums text-black dark:text-white">
-              {session.score}
-            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold tabular-nums text-black dark:text-white">
+                {session.score}
+              </p>
+              {isSandbox && (
+                <span className={SANDBOX_TAG_CLASS}>SANDBOX</span>
+              )}
+            </div>
           </div>
         </div>
         <button
@@ -77,7 +94,10 @@ function SessionListItem({ session }: { session: DashboardSessionRow }) {
       </div>
       {open && (
         <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-800">
-          <SessionDetailPanel rawData={session.raw_data} />
+          <SessionDetailPanel
+            rawData={session.raw_data}
+            settings={session.settings}
+          />
         </div>
       )}
     </li>

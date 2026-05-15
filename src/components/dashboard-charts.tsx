@@ -76,6 +76,8 @@ export interface BarDatum {
 interface DashboardChartsProps {
   lineData: LineDatum[];
   barData: BarDatum[];
+  /** When false, omits the score trend card (ranked line chart unchanged internally). */
+  showScoreTrend?: boolean;
 }
 
 function lineTooltipStyles(c: ChartThemeColors) {
@@ -91,6 +93,7 @@ function lineTooltipStyles(c: ChartThemeColors) {
 export default function DashboardCharts({
   lineData,
   barData,
+  showScoreTrend = true,
 }: DashboardChartsProps) {
   const chart = useChartThemeColors();
 
@@ -108,6 +111,7 @@ export default function DashboardCharts({
 
   return (
     <div className="flex flex-col gap-4">
+      {showScoreTrend && (
       <div className={cardClass}>
         <h2 className={sectionLabel}>Score trend</h2>
         {lineData.length === 0 ? (
@@ -153,6 +157,7 @@ export default function DashboardCharts({
           </div>
         )}
       </div>
+      )}
 
       <div className={cardClass}>
         <h2 className={sectionLabel}>Time by operation</h2>

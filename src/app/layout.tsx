@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import Header from "@/components/header";
+import { SandboxBanner } from "@/components/sandbox-banner";
 import ProfileSync from "@/components/profile-sync";
 import ThemeProvider from "@/components/theme-provider";
 import { getSiteOrigin } from "@/lib/site-url";
@@ -32,6 +33,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: "/favicon.svg",
+    apple: "/apple-touch-icon.png",
+  },
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black",
   },
   openGraph: {
     type: "website",
@@ -62,6 +68,7 @@ export default function RootLayout({
       <body className="flex min-h-dvh min-h-full flex-col bg-white text-black transition-colors duration-300 dark:bg-black dark:text-white font-sans antialiased">
         <ThemeProvider>
           <Header />
+          <SandboxBanner />
           <ProfileSync>{children}</ProfileSync>
         </ThemeProvider>
         <Analytics />

@@ -5,9 +5,17 @@ import SessionTimeChart, {
 } from "@/components/session-time-chart";
 import { operandComposition } from "@/lib/dashboard-aggregates";
 import { useNarrowViewport } from "@/hooks/use-narrow-viewport";
+import { SandboxConfigSummaryLines } from "@/components/sandbox-config-summary";
+import {
+  formatSandboxConfigSummary,
+  isSandboxSettings,
+} from "@/lib/session-settings";
 
 const LABEL_MUTED =
   "text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500";
+
+const SECTION_LABEL =
+  "font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400 dark:text-neutral-500";
 
 const BAR_SHADES: Record<string, string> = {
   "+": "bg-black dark:bg-white",
@@ -18,19 +26,30 @@ const BAR_SHADES: Record<string, string> = {
 
 interface SessionDetailPanelProps {
   rawData: unknown;
+  settings?: unknown;
   chartHeight?: number;
 }
 
 export default function SessionDetailPanel({
   rawData,
+  settings,
   chartHeight = 220,
 }: SessionDetailPanelProps) {
   const narrow = useNarrowViewport();
   const points = sanitizeTimingPoints(rawData);
   const composition = operandComposition(rawData);
   const chartVisualHeight = chartHeight + (narrow ? 56 : 0);
+  const sandboxSummary = isSandboxSettings(settings)
+    ? formatSandboxConfigSummary(settings)
+    : null;
 
-  if (points.length === 0 && composition.length === 0) {
+  const hasSandboxSummary =
+    sandboxSummary != null &&
+    (sandboxSummary[0] !== "" ||
+      sandboxSummary[1] !== "" ||
+      sandboxSummary[2] !== "");
+
+  if (points.length === 0 && composition.length === 0 && !hasSandboxSummary) {
     return (
       <p className="text-sm text-neutral-500 dark:text-neutral-400">
         No detail data available for this session.
@@ -44,6 +63,15 @@ export default function SessionDetailPanel({
       onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
     >
+      {hasSandboxSummary && sandboxSummary && (
+        <div className="mb-8">
+          <p className={SECTION_LABEL}>Sandbox config</p>
+          <SandboxConfigSummaryLines
+            summary={sandboxSummary}
+            className="mt-2"
+          />
+        </div>
+      )}
       <div className="flex flex-col gap-8 sm:flex-row sm:gap-6">
         <div className="min-w-0 sm:w-[60%]">
           <p className={LABEL_MUTED}>Time per question</p>

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import AppearanceSettings from "@/components/appearance-settings";
+import { SandboxModeSettings } from "@/components/sandbox-mode-settings";
 import ProfileSettings from "@/components/profile-settings";
 import SettingsActions from "@/components/settings-actions";
 import { createClient } from "@/lib/supabase/server";
@@ -52,6 +53,10 @@ export default async function SettingsPage() {
         </section>
 
         <div className="mt-14">
+          <SandboxModeSettings />
+        </div>
+
+        <div className="mt-10">
           <AppearanceSettings />
         </div>
 
