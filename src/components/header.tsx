@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const wordmarkClassName =
-  "shrink-0 text-sm font-normal leading-none tracking-[0.2em] uppercase text-black transition-colors duration-300 dark:text-white";
+  "shrink-0 font-sans text-xs font-normal leading-none tracking-[0.2em] uppercase text-black transition-colors duration-300 dark:text-white";
 
 const navRowClassName =
   "text-sm font-normal leading-none tracking-[0.2em] uppercase text-black/85 transition-colors duration-300 hover:text-black dark:text-white/85 dark:hover:text-white";

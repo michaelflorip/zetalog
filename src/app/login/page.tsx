@@ -9,7 +9,7 @@ const LABEL =
   "text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500";
 
 const UNDERLINE_INPUT =
-  "w-full border-b border-neutral-400 bg-transparent pb-2 text-sm text-black outline-none transition-colors duration-300 placeholder:text-neutral-400 focus:border-black dark:border-white/35 dark:text-white dark:placeholder:text-neutral-500 dark:focus:border-white";
+  "w-full border-b border-neutral-400 bg-transparent pb-2 text-base text-black outline-none transition-colors duration-300 placeholder:text-neutral-400 focus:border-black dark:border-white/35 dark:text-white dark:placeholder:text-neutral-500 dark:focus:border-white";
 
 export default function LoginPage() {
   const router = useRouter();
