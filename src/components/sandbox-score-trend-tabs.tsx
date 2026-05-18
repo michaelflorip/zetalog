@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { DashboardSessionRecord } from "@/components/dashboard-client";
 import { ScoreTrendCard, type LineDatum } from "@/components/score-trend-card";
+import { formatSwissDate } from "@/lib/datetime";
 import { formatDurationPreset, isSandboxSettings } from "@/lib/session-settings";
 
 const DURATION_PRESETS = [15, 30, 60, 90, 120] as const;
@@ -79,17 +80,18 @@ export function SandboxScoreTrendTabs({
   );
 
   const lineData: LineDatum[] = useMemo(() => {
-    const dateFmt = new Intl.DateTimeFormat(undefined, {
-      month: "short",
-      day: "numeric",
+    const timeFmt = new Intl.DateTimeFormat(undefined, {
       hour: "2-digit",
       minute: "2-digit",
     });
     const chronological = [...filteredSessions].reverse();
-    return chronological.map((s) => ({
-      at: dateFmt.format(new Date(s.created_at)),
-      score: s.score,
-    }));
+    return chronological.map((s) => {
+      const at = new Date(s.created_at);
+      return {
+        at: `${formatSwissDate(at)}, ${timeFmt.format(at)}`,
+        score: s.score,
+      };
+    });
   }, [filteredSessions]);
 
   return (

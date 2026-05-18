@@ -1,4 +1,4 @@
-const SWISS_MONTHS = [
+export const SWISS_MONTHS = [
   "JAN",
   "FEB",
   "MAR",
@@ -13,14 +13,15 @@ const SWISS_MONTHS = [
   "DEC",
 ] as const;
 
-/** e.g. '10 MAY 26' — uses the viewer's local calendar from the instant. */
+/** e.g. 'May 15, 2026' — uses the viewer's local calendar from the instant. */
 export function formatSwissDate(isoOrDate: string | Date): string {
   const d =
     typeof isoOrDate === "string" ? new Date(isoOrDate) : isoOrDate;
-  const day = d.getDate();
-  const mon = SWISS_MONTHS[d.getMonth()];
-  const yy = String(d.getFullYear()).slice(-2);
-  return `${day} ${mon} ${yy}`;
+  return new Intl.DateTimeFormat(undefined, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(d);
 }
 
 /**

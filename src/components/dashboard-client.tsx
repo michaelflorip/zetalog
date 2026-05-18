@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
+import { ActivityHeatmap } from "@/components/activity-heatmap";
 import DashboardCharts from "@/components/dashboard-charts";
 import DashboardSessionList, {
   type DashboardSessionRow,
@@ -11,6 +12,7 @@ import { SandboxScoreTrendTabs } from "@/components/sandbox-score-trend-tabs";
 import { useSandboxMode } from "@/hooks/use-sandbox-mode";
 import { averagesByOperator } from "@/lib/dashboard-aggregates";
 import {
+  formatSwissDate,
   localCalendarDayUtcIsoRange,
   localCalendarMonthUtcIsoRange,
 } from "@/lib/datetime";
@@ -154,17 +156,18 @@ export function DashboardClient({
   }, [sandboxSessions]);
 
   const lineData = useMemo(() => {
-    const dateFmt = new Intl.DateTimeFormat(undefined, {
-      month: "short",
-      day: "numeric",
+    const timeFmt = new Intl.DateTimeFormat(undefined, {
       hour: "2-digit",
       minute: "2-digit",
     });
     const chronological = [...activeSessions].reverse();
-    return chronological.map((s) => ({
-      at: dateFmt.format(new Date(s.created_at)),
-      score: s.score,
-    }));
+    return chronological.map((s) => {
+      const at = new Date(s.created_at);
+      return {
+        at: `${formatSwissDate(at)}, ${timeFmt.format(at)}`,
+        score: s.score,
+      };
+    });
   }, [activeSessions]);
 
   const barData = useMemo(() => {
@@ -267,6 +270,10 @@ export function DashboardClient({
         lineData={lineData}
         barData={barData}
         showScoreTrend={!isSandbox}
+      />
+
+      <ActivityHeatmap
+        sessions={isSandbox ? sandboxSessions : rankedSessions}
       />
 
       <DashboardSessionList
