@@ -53,6 +53,108 @@ function profileUsername(
   return profile?.username?.trim() || "—";
 }
 
+function formatAvgLast10(value: number | null): string {
+  if (value == null) return "—";
+  return value % 1 === 0
+    ? String(Math.round(value))
+    : value.toFixed(1);
+}
+
+interface AuthenticatedHomeStats {
+  allTimeHigh: number | null;
+  avgLast10: number | null;
+  todayCount: number;
+  leaderboardRank: number | null;
+  isPublic: boolean;
+}
+
+async function fetchAuthenticatedHomeStats(
+  userId: string,
+): Promise<AuthenticatedHomeStats> {
+  const fallback: AuthenticatedHomeStats = {
+    allTimeHigh: null,
+    avgLast10: null,
+    todayCount: 0,
+    leaderboardRank: null,
+    isPublic: false,
+  };
+
+  try {
+    const supabase = await createClient();
+    const { data: sessions } = await supabase
+      .from("sessions")
+      .select("score, created_at, settings")
+      .eq("user_id", userId)
+      .eq("source", "zetavant")
+      .order("created_at", { ascending: false })
+      .limit(500);
+
+    const rows = sessions ?? [];
+    const today = new Date().toDateString();
+
+    let allTimeHigh: number | null = null;
+    let avgLast10: number | null = null;
+    let todayCount = 0;
+
+    if (rows.length > 0) {
+      allTimeHigh = Math.max(...rows.map((s) => Number(s.score)));
+      const last10 = rows.slice(0, 10);
+      avgLast10 =
+        Math.round(
+          (last10.reduce((acc, s) => acc + Number(s.score), 0) / last10.length) *
+            10,
+        ) / 10;
+      todayCount = rows.filter(
+        (s) => new Date(s.created_at as string).toDateString() === today,
+      ).length;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username, is_public")
+      .eq("id", userId)
+      .single();
+
+    const isPublic = profile?.is_public ?? false;
+    let leaderboardRank: number | null = null;
+
+    if (isPublic) {
+      const { data: allTopSessions } = await supabase
+        .from("sessions")
+        .select("score, user_id, created_at")
+        .eq("source", "zetavant")
+        .order("score", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(500);
+
+      const seen = new Set<string>();
+      const ranked: { user_id: string; score: number }[] = [];
+
+      for (const row of allTopSessions ?? []) {
+        const uid = row.user_id as string;
+        if (!uid || seen.has(uid)) continue;
+        seen.add(uid);
+        ranked.push({ user_id: uid, score: Number(row.score) });
+      }
+
+      const index = ranked.findIndex((r) => r.user_id === userId);
+      if (index >= 0) {
+        leaderboardRank = index + 1;
+      }
+    }
+
+    return {
+      allTimeHigh,
+      avgLast10,
+      todayCount,
+      leaderboardRank,
+      isPublic,
+    };
+  } catch {
+    return fallback;
+  }
+}
+
 async function fetchTopSessions(): Promise<TopSessionRow[]> {
   try {
     const supabase = await createClient();
@@ -278,19 +380,11 @@ export default async function Home() {
     return <GuestHome topSessions={topSessions} />;
   }
 
-  const { data: latestSession } = await supabase
-    .from("sessions")
-    .select("score")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const recentScore = latestSession?.score;
+  const homeStats = await fetchAuthenticatedHomeStats(user.id);
 
   return (
-    <div className="flex flex-1 flex-col bg-white font-sans transition-colors duration-300 dark:bg-black">
-      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-8 py-24 text-center">
+    <div className="flex min-h-screen flex-1 flex-col bg-white font-sans transition-colors duration-300 dark:bg-black">
+      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-6 py-24 text-center">
         <p className="text-sm font-semibold tracking-widest uppercase text-black transition-colors duration-300 dark:text-white">
           Zetavant
         </p>
@@ -304,21 +398,37 @@ export default async function Home() {
         )}
 
         <div className="mt-16 w-full border-t border-gray-200 pt-16 transition-colors duration-300 dark:border-gray-800">
-          <p className="text-xs font-medium tracking-widest uppercase text-neutral-400 dark:text-neutral-500">
-            Latest peak score
-          </p>
-          {recentScore != null ? (
-            <p className="mt-4 text-6xl font-semibold tabular-nums tracking-tight text-black transition-colors duration-300 dark:text-white sm:text-7xl">
-              {recentScore}
-            </p>
-          ) : (
-            <p className="mt-4 text-base text-neutral-500 dark:text-neutral-400">
-              No rounds yet. Start a session to establish your baseline.
-            </p>
-          )}
+          <div className="mt-10 flex w-full">
+            <div className="flex-1 text-center">
+              <p className={LABEL_MUTED}>All-time high</p>
+              <p className="mt-2 font-mono text-3xl font-medium tabular-nums text-black md:text-4xl dark:text-white">
+                {homeStats.allTimeHigh != null ? homeStats.allTimeHigh : "—"}
+              </p>
+            </div>
+            <div className="flex-1 text-center">
+              <p className={LABEL_MUTED}>Avg last 10</p>
+              <p className="mt-2 font-mono text-3xl font-medium tabular-nums text-black md:text-4xl dark:text-white">
+                {formatAvgLast10(homeStats.avgLast10)}
+              </p>
+            </div>
+            <div className="flex-1 text-center">
+              <p className={LABEL_MUTED}>Today</p>
+              <p className="mt-2 font-mono text-3xl font-medium tabular-nums text-black md:text-4xl dark:text-white">
+                {homeStats.todayCount}
+              </p>
+            </div>
+          </div>
+
+          {homeStats.isPublic &&
+            homeStats.leaderboardRank != null &&
+            homeStats.leaderboardRank > 0 && (
+              <p className="mt-6 text-center font-mono text-xs tracking-widest uppercase text-neutral-400 dark:text-neutral-500">
+                YOU ARE RANKED #{homeStats.leaderboardRank} ON THE LEADERBOARD
+              </p>
+            )}
         </div>
 
-        <div className="mt-20 flex w-full flex-col gap-4 sm:flex-row sm:justify-center">
+        <div className="mt-10 flex w-full flex-col gap-4 sm:flex-row sm:justify-center">
           <Link href="/play" className={PRIMARY_BTN_WIDE}>
             Start New Round
           </Link>
